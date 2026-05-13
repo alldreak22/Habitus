@@ -1,0 +1,61 @@
+package com.habitus.api.service;
+
+import java.util.List;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.habitus.api.dto.request.DailyHabitPlanRequest;
+import com.habitus.api.dto.response.DailyHabitPlanResponse;
+import com.habitus.api.entity.DailyEntry;
+import com.habitus.api.entity.DailyHabitPlan;
+import com.habitus.api.entity.Habit;
+import com.habitus.api.entity.User;
+import com.habitus.api.exception.NotFoundException;
+import com.habitus.api.mapper.ApiMapper;
+import com.habitus.api.repository.DailyHabitPlanRepository;
+
+import lombok.RequiredArgsConstructor;
+
+@Service
+@RequiredArgsConstructor
+public class DailyHabitPlanService {
+
+    private final DailyEntryService dailyEntryService;
+    private final HabitService habitService;
+    private final DailyHabitPlanRepository planRepository;
+    private final ApiMapper mapper;
+
+    @Transactional
+    public DailyHabitPlanResponse create(User user, Long entryId, DailyHabitPlanRequest request) {
+        DailyEntry entry = dailyEntryService.findUserEntry(user, entryId);
+        Habit habit = habitService.findUserHabit(user, request.habitId());
+
+        DailyHabitPlan plan = planRepository.findByDailyEntryIdAndHabitId(entry.getId(), habit.getId())
+            .orElseGet(DailyHabitPlan::new);
+        plan.setDailyEntry(entry);
+        plan.setHabit(habit);
+        plan.setPlanned(true);
+
+        return mapper.toDailyHabitPlanResponse(planRepository.save(plan));
+    }
+
+    @Transactional(readOnly = true)
+    public List<DailyHabitPlanResponse> list(User user, Long entryId) {
+        DailyEntry entry = dailyEntryService.findUserEntry(user, entryId);
+        return planRepository.findByDailyEntryIdOrderByCreatedAtAsc(entry.getId())
+            .stream()
+            .map(mapper::toDailyHabitPlanResponse)
+            .toList();
+    }
+
+    @Transactional
+    public void delete(User user, Long entryId, Long habitId) {
+        DailyEntry entry = dailyEntryService.findUserEntry(user, entryId);
+        habitService.findUserHabit(user, habitId);
+        if (!planRepository.existsByDailyEntryIdAndHabitId(entry.getId(), habitId)) {
+            throw new NotFoundException("Planned habit not found");
+        }
+        planRepository.deleteByDailyEntryIdAndHabitId(entry.getId(), habitId);
+    }
+}

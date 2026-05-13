@@ -1,0 +1,17 @@
+spring:
+  application:
+    name: habitus-api
+  datasource:
+    url: jdbc:sqlite:data/habitus.db
+    driver-class-name: org.sqlite.JDBC
+  jpa:
+    database-platform: org.hibernate.community.dialect.SQLiteDialect
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
+
+server:
+  port: 8080
