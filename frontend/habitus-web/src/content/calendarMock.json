@@ -1,0 +1,60 @@
+{
+  "daySummaries": {
+    "2026-05-12": [
+      {
+        "id": "water",
+        "name": "Hidratação",
+        "detail": "3L / 3L meta",
+        "icon": "water_drop",
+        "tone": "green",
+        "completed": false
+      },
+      {
+        "id": "reading",
+        "name": "Leitura",
+        "detail": "12 páginas lidas",
+        "icon": "menu_book",
+        "tone": "gray",
+        "completed": true
+      }
+    ],
+    "2026-05-13": [
+      {
+        "id": "water",
+        "name": "Hidratação",
+        "detail": "2.5L / 3L meta",
+        "icon": "water_drop",
+        "tone": "green",
+        "completed": true
+      },
+      {
+        "id": "meditation",
+        "name": "Meditação",
+        "detail": "15 min completado",
+        "icon": "self_improvement",
+        "tone": "red",
+        "completed": true
+      },
+      {
+        "id": "reading",
+        "name": "Leitura",
+        "detail": "Pendente para hoje",
+        "icon": "menu_book",
+        "tone": "gray",
+        "completed": false
+      },
+      {
+        "id": "walk",
+        "name": "Caminhada",
+        "detail": "20 min restantes",
+        "icon": "directions_walk",
+        "tone": "green",
+        "completed": false
+      }
+    ]
+  },
+  "monthActivity": {
+    "2026-05-12": { "plannedHabitIds": ["water", "reading"] },
+    "2026-05-13": { "plannedHabitIds": ["water", "meditation", "reading", "exercise"] }
+  }
+}

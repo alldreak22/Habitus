@@ -1,0 +1,57 @@
+{
+  "habits": [
+    {
+      "id": "water",
+      "name": "Hidratação",
+      "description": "Meta diária de 2.5 litros para manter energia, foco e disposição.",
+      "targetFrequency": "Todos os dias",
+      "timesPerDay": 5,
+      "suggestedTimes": "08:00, 11:00, 14:00, 17:00, 20:00",
+      "active": true,
+      "icon": "water_drop",
+      "color": "#00694a",
+      "tone": "green"
+    },
+    {
+      "id": "reading",
+      "name": "Leitura Matinal",
+      "description": "Ler ao menos 10 páginas antes de iniciar a rotina de trabalho.",
+      "targetFrequency": "Segunda a sexta",
+      "timesPerDay": 1,
+      "suggestedTimes": "07:30",
+      "active": true,
+      "icon": "menu_book",
+      "color": "#5b5f5e",
+      "tone": "gray"
+    },
+    {
+      "id": "meditation",
+      "name": "Meditação",
+      "description": "15 minutos de respiração guiada para reduzir ansiedade.",
+      "targetFrequency": "Finais de semana",
+      "timesPerDay": 1,
+      "suggestedTimes": "",
+      "active": false,
+      "icon": "self_improvement",
+      "color": "#944343",
+      "tone": "red"
+    },
+    {
+      "id": "exercise",
+      "name": "Exercício Físico",
+      "description": "Treino funcional ou corrida de pelo menos 30 minutos.",
+      "targetFrequency": "3x por semana",
+      "timesPerDay": 1,
+      "suggestedTimes": "18:30",
+      "active": true,
+      "icon": "fitness_center",
+      "color": "#2f8f6b",
+      "tone": "green"
+    }
+  ],
+  "weeklyProgress": {
+    "completedPercentage": 85,
+    "completedHabits": 34,
+    "plannedHabits": 40
+  }
+}

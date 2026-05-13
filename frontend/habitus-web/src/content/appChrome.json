@@ -1,0 +1,15 @@
+{
+  "brand": {
+    "name": "Habitus",
+    "tagline": "Produtividade Serena"
+  },
+  "navigationItems": [
+    { "to": "/calendario", "label": "Calendário", "icon": "calendar_today" },
+    { "to": "/habitos", "label": "Hábitos", "icon": "check_circle" },
+    { "to": "/evolucao", "label": "Evolução", "icon": "monitoring" }
+  ],
+  "currentUser": {
+    "name": "André Roedel",
+    "imageUrl": null
+  }
+}

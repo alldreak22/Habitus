@@ -1,0 +1,18 @@
+{
+  "profile": {
+    "title": "Perfil",
+    "description": "Área preparada para os dados do usuário e a imagem vinda da API."
+  },
+  "settings": {
+    "title": "Configurações",
+    "description": "Área preparada para preferências da conta e ajustes do aplicativo."
+  },
+  "evolution": {
+    "title": "Evolução",
+    "description": "Área preparada para estatísticas, gráficos e tendências dos seus hábitos."
+  },
+  "dashboard": {
+    "title": "Resumo",
+    "description": "Tela inicial preparada para receber o HTML base do dashboard."
+  }
+}

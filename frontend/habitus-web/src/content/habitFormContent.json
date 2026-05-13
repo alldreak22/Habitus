@@ -1,0 +1,50 @@
+{
+  "iconOptions": [
+    { "icon": "fitness_center", "label": "Treino" },
+    { "icon": "water_drop", "label": "Água" },
+    { "icon": "menu_book", "label": "Leitura" },
+    { "icon": "self_improvement", "label": "Meditação" },
+    { "icon": "bedtime", "label": "Sono" },
+    { "icon": "directions_walk", "label": "Caminhada" },
+    { "icon": "restaurant", "label": "Alimentação" },
+    { "icon": "edit_note", "label": "Escrita" }
+  ],
+  "colorOptions": [
+    "#00694a",
+    "#5b5f5e",
+    "#944343",
+    "#3e4943",
+    "#2f8f6b",
+    "#34495e",
+    "#7f8c8d",
+    "#16a085",
+    "#2980b9",
+    "#8e44ad"
+  ],
+  "weekDays": [
+    { "key": "sun", "label": "D" },
+    { "key": "mon", "label": "S" },
+    { "key": "tue", "label": "T" },
+    { "key": "wed", "label": "Q" },
+    { "key": "thu", "label": "Q" },
+    { "key": "fri", "label": "S" },
+    { "key": "sat", "label": "S" }
+  ],
+  "productivityTips": [
+    "Começar com hábitos pequenos aumenta a chance de consistência a longo prazo.",
+    "Agrupe o novo hábito a uma rotina que já existe para reduzir atrito.",
+    "Escolha horários realistas antes de aumentar a meta diária.",
+    "Revise a frequência depois de uma semana e ajuste antes de abandonar."
+  ],
+  "initialForm": {
+    "active": true,
+    "color": "#00694a",
+    "description": "",
+    "frequency": "daily",
+    "icon": "fitness_center",
+    "name": "",
+    "selectedDays": ["mon", "tue", "wed", "thu", "fri"],
+    "suggestedTimes": ["08:00"],
+    "timesPerDay": 1
+  }
+}
