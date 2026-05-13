@@ -26,16 +26,16 @@ public class HabitService {
     private final ApiMapper mapper;
 
     @Transactional
-    public HabitResponse create(User user, HabitRequest request) {
+    public HabitResponse criar(User user, HabitRequest requisicao) {
         Habit habit = new Habit();
         habit.setUser(user);
-        applyRequest(habit, request);
+        aplicarRequisicao(habit, requisicao);
         habit.setActive(true);
         return mapper.toHabitResponse(habitRepository.save(habit));
     }
 
     @Transactional(readOnly = true)
-    public List<HabitResponse> list(User user) {
+    public List<HabitResponse> listar(User user) {
         return habitRepository.findByUserIdOrderByCreatedAtDesc(user.getId())
             .stream()
             .map(mapper::toHabitResponse)
@@ -43,44 +43,43 @@ public class HabitService {
     }
 
     @Transactional(readOnly = true)
-    public HabitResponse get(User user, Long id) {
-        return mapper.toHabitResponse(findUserHabit(user, id));
+    public HabitResponse buscar(User user, Long id) {
+        return mapper.toHabitResponse(buscarHabitoDoUsuario(user, id));
     }
 
-    @SuppressWarnings("null")
     @Transactional
-    public HabitResponse update(User user, Long id, HabitRequest request) {
-        Habit habit = findUserHabit(user, id);
-        applyRequest(habit, request);
+    public HabitResponse atualizar(User user, Long id, HabitRequest requisicao) {
+        Habit habit = buscarHabitoDoUsuario(user, id);
+        aplicarRequisicao(habit, requisicao);
         return mapper.toHabitResponse(habitRepository.save(habit));
     }
 
     @Transactional
-    public void deactivate(User user, Long id) {
-        Habit habit = findUserHabit(user, id);
+    public void desativar(User user, Long id) {
+        Habit habit = buscarHabitoDoUsuario(user, id);
         habit.setActive(false);
         habitRepository.save(habit);
     }
 
     @Transactional(readOnly = true)
-    public List<DailyHabitCompletionResponse> history(User user, Long habitId) {
-        findUserHabit(user, habitId);
+    public List<DailyHabitCompletionResponse> historico(User user, Long habitId) {
+        buscarHabitoDoUsuario(user, habitId);
         return completionRepository.findByHabitIdAndDailyEntryUserIdOrderByDailyEntryEntryDateDesc(habitId, user.getId())
             .stream()
             .map(mapper::toDailyHabitCompletionResponse)
             .toList();
     }
 
-    Habit findUserHabit(User user, Long habitId) {
+    Habit buscarHabitoDoUsuario(User user, Long habitId) {
         return habitRepository.findByIdAndUserId(habitId, user.getId())
-            .orElseThrow(() -> new NotFoundException("Habit not found"));
+            .orElseThrow(() -> new NotFoundException("Hábito não encontrado"));
     }
 
-    private void applyRequest(Habit habit, HabitRequest request) {
-        habit.setName(request.name().trim());
-        habit.setDescription(request.description());
-        habit.setTargetFrequency(request.targetFrequency().trim().toUpperCase());
-        habit.setTimesPerDay(request.timesPerDay());
-        habit.setSuggestedTimes(request.suggestedTimes());
+    private void aplicarRequisicao(Habit habit, HabitRequest requisicao) {
+        habit.setName(requisicao.name().trim());
+        habit.setDescription(requisicao.description());
+        habit.setTargetFrequency(requisicao.targetFrequency().trim().toUpperCase());
+        habit.setTimesPerDay(requisicao.timesPerDay());
+        habit.setSuggestedTimes(requisicao.suggestedTimes());
     }
 }

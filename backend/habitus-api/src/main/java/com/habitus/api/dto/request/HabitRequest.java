@@ -5,10 +5,10 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
 public record HabitRequest(
-    @NotBlank String name,
+    @NotBlank(message = "Nome é obrigatório") String name,
     String description,
-    @NotBlank String targetFrequency,
-    @NotNull @Min(1) Integer timesPerDay,
+    @NotBlank(message = "Frequência alvo é obrigatória") String targetFrequency,
+    @NotNull(message = "Quantidade por dia é obrigatória") @Min(value = 1, message = "Quantidade por dia deve ser no mínimo 1") Integer timesPerDay,
     String suggestedTimes
 ) {
 }

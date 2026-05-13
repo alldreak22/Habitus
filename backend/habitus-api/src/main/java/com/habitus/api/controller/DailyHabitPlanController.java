@@ -31,24 +31,24 @@ public class DailyHabitPlanController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public DailyHabitPlanResponse create(
+    public DailyHabitPlanResponse criar(
         @PathVariable Long entryId,
-        @Valid @RequestBody DailyHabitPlanRequest request
+        @Valid @RequestBody DailyHabitPlanRequest requisicao
     ) {
-        User user = currentUserService.getCurrentUser();
-        return planService.create(user, entryId, request);
+        User user = currentUserService.obterUsuarioAtual();
+        return planService.criar(user, entryId, requisicao);
     }
 
     @GetMapping
-    public List<DailyHabitPlanResponse> list(@PathVariable Long entryId) {
-        User user = currentUserService.getCurrentUser();
-        return planService.list(user, entryId);
+    public List<DailyHabitPlanResponse> listar(@PathVariable Long entryId) {
+        User user = currentUserService.obterUsuarioAtual();
+        return planService.listar(user, entryId);
     }
 
     @DeleteMapping("/{habitId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void delete(@PathVariable Long entryId, @PathVariable Long habitId) {
-        User user = currentUserService.getCurrentUser();
-        planService.delete(user, entryId, habitId);
+    public void excluir(@PathVariable Long entryId, @PathVariable Long habitId) {
+        User user = currentUserService.obterUsuarioAtual();
+        planService.excluir(user, entryId, habitId);
     }
 }

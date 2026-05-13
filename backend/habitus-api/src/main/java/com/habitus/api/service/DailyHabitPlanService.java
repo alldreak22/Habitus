@@ -27,9 +27,9 @@ public class DailyHabitPlanService {
     private final ApiMapper mapper;
 
     @Transactional
-    public DailyHabitPlanResponse create(User user, Long entryId, DailyHabitPlanRequest request) {
-        DailyEntry entry = dailyEntryService.findUserEntry(user, entryId);
-        Habit habit = habitService.findUserHabit(user, request.habitId());
+    public DailyHabitPlanResponse criar(User user, Long entryId, DailyHabitPlanRequest requisicao) {
+        DailyEntry entry = dailyEntryService.buscarEntradaDoUsuario(user, entryId);
+        Habit habit = habitService.buscarHabitoDoUsuario(user, requisicao.habitId());
 
         DailyHabitPlan plan = planRepository.findByDailyEntryIdAndHabitId(entry.getId(), habit.getId())
             .orElseGet(DailyHabitPlan::new);
@@ -41,8 +41,8 @@ public class DailyHabitPlanService {
     }
 
     @Transactional(readOnly = true)
-    public List<DailyHabitPlanResponse> list(User user, Long entryId) {
-        DailyEntry entry = dailyEntryService.findUserEntry(user, entryId);
+    public List<DailyHabitPlanResponse> listar(User user, Long entryId) {
+        DailyEntry entry = dailyEntryService.buscarEntradaDoUsuario(user, entryId);
         return planRepository.findByDailyEntryIdOrderByCreatedAtAsc(entry.getId())
             .stream()
             .map(mapper::toDailyHabitPlanResponse)
@@ -50,11 +50,11 @@ public class DailyHabitPlanService {
     }
 
     @Transactional
-    public void delete(User user, Long entryId, Long habitId) {
-        DailyEntry entry = dailyEntryService.findUserEntry(user, entryId);
-        habitService.findUserHabit(user, habitId);
+    public void excluir(User user, Long entryId, Long habitId) {
+        DailyEntry entry = dailyEntryService.buscarEntradaDoUsuario(user, entryId);
+        habitService.buscarHabitoDoUsuario(user, habitId);
         if (!planRepository.existsByDailyEntryIdAndHabitId(entry.getId(), habitId)) {
-            throw new NotFoundException("Planned habit not found");
+            throw new NotFoundException("Hábito planejado não encontrado");
         }
         planRepository.deleteByDailyEntryIdAndHabitId(entry.getId(), habitId);
     }

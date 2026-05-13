@@ -29,23 +29,23 @@ public class DailyHabitCompletionService {
     private final ApiMapper mapper;
 
     @Transactional
-    public DailyHabitCompletionResponse create(User user, Long entryId, DailyHabitCompletionRequest request) {
-        DailyEntry entry = dailyEntryService.findUserEntry(user, entryId);
-        Habit habit = habitService.findUserHabit(user, request.habitId());
+    public DailyHabitCompletionResponse criar(User user, Long entryId, DailyHabitCompletionRequest requisicao) {
+        DailyEntry entry = dailyEntryService.buscarEntradaDoUsuario(user, entryId);
+        Habit habit = habitService.buscarHabitoDoUsuario(user, requisicao.habitId());
 
         DailyHabitCompletion completion = completionRepository.findByDailyEntryIdAndHabitId(entry.getId(), habit.getId())
             .orElseGet(DailyHabitCompletion::new);
         completion.setDailyEntry(entry);
         completion.setHabit(habit);
-        completion.setCompleted(request.completed());
-        completion.setNotes(request.notes());
+        completion.setCompleted(requisicao.completed());
+        completion.setNotes(requisicao.notes());
 
         return mapper.toDailyHabitCompletionResponse(completionRepository.save(completion));
     }
 
     @Transactional(readOnly = true)
-    public List<DailyHabitCompletionResponse> list(User user, Long entryId) {
-        DailyEntry entry = dailyEntryService.findUserEntry(user, entryId);
+    public List<DailyHabitCompletionResponse> listar(User user, Long entryId) {
+        DailyEntry entry = dailyEntryService.buscarEntradaDoUsuario(user, entryId);
         return completionRepository.findByDailyEntryIdOrderByIdAsc(entry.getId())
             .stream()
             .map(mapper::toDailyHabitCompletionResponse)
@@ -53,18 +53,18 @@ public class DailyHabitCompletionService {
     }
 
     @Transactional
-    public DailyHabitCompletionResponse update(User user, Long entryId, Long habitId, DailyHabitCompletionRequest request) {
-        DailyEntry entry = dailyEntryService.findUserEntry(user, entryId);
-        habitService.findUserHabit(user, habitId);
+    public DailyHabitCompletionResponse atualizar(User user, Long entryId, Long habitId, DailyHabitCompletionRequest requisicao) {
+        DailyEntry entry = dailyEntryService.buscarEntradaDoUsuario(user, entryId);
+        habitService.buscarHabitoDoUsuario(user, habitId);
 
-        if (!habitId.equals(request.habitId())) {
-            throw new ApiException(HttpStatus.BAD_REQUEST, "Habit in path and body must match");
+        if (!habitId.equals(requisicao.habitId())) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "Hábito da rota e do corpo devem ser iguais");
         }
 
         DailyHabitCompletion completion = completionRepository.findByDailyEntryIdAndHabitId(entry.getId(), habitId)
-            .orElseThrow(() -> new NotFoundException("Completed habit not found"));
-        completion.setCompleted(request.completed());
-        completion.setNotes(request.notes());
+            .orElseThrow(() -> new NotFoundException("Hábito concluído não encontrado"));
+        completion.setCompleted(requisicao.completed());
+        completion.setNotes(requisicao.notes());
 
         return mapper.toDailyHabitCompletionResponse(completionRepository.save(completion));
     }

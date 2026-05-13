@@ -18,23 +18,22 @@ public class CurrentUserService {
     private final TokenService tokenService;
     private final UserRepository userRepository;
 
-    @SuppressWarnings("null")
-    public User getCurrentUser() {
-        HttpServletRequest request = currentRequest();
-        String authorization = request.getHeader("Authorization");
-        if (authorization == null || !authorization.startsWith("Bearer ")) {
-            throw new UnauthorizedException("Missing bearer token");
+    public User obterUsuarioAtual() {
+        HttpServletRequest request = requisicaoAtual();
+        String autorizacao = request.getHeader("Authorization");
+        if (autorizacao == null || !autorizacao.startsWith("Bearer ")) {
+            throw new UnauthorizedException("Token bearer ausente");
         }
 
-        Long userId = tokenService.readUserId(authorization.substring("Bearer ".length()));
+        Long userId = tokenService.lerIdUsuario(autorizacao.substring("Bearer ".length()));
         return userRepository.findById(userId)
-            .orElseThrow(() -> new UnauthorizedException("User not found for token"));
+            .orElseThrow(() -> new UnauthorizedException("Usuário não encontrado para o token"));
     }
 
-    private HttpServletRequest currentRequest() {
+    private HttpServletRequest requisicaoAtual() {
         if (RequestContextHolder.getRequestAttributes() instanceof ServletRequestAttributes attributes) {
             return attributes.getRequest();
         }
-        throw new UnauthorizedException("No active request");
+        throw new UnauthorizedException("Nenhuma requisição ativa");
     }
 }

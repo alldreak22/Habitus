@@ -31,27 +31,27 @@ public class DailyHabitCompletionController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public DailyHabitCompletionResponse create(
+    public DailyHabitCompletionResponse criar(
         @PathVariable Long entryId,
-        @Valid @RequestBody DailyHabitCompletionRequest request
+        @Valid @RequestBody DailyHabitCompletionRequest requisicao
     ) {
-        User user = currentUserService.getCurrentUser();
-        return completionService.create(user, entryId, request);
+        User user = currentUserService.obterUsuarioAtual();
+        return completionService.criar(user, entryId, requisicao);
     }
 
     @GetMapping
-    public List<DailyHabitCompletionResponse> list(@PathVariable Long entryId) {
-        User user = currentUserService.getCurrentUser();
-        return completionService.list(user, entryId);
+    public List<DailyHabitCompletionResponse> listar(@PathVariable Long entryId) {
+        User user = currentUserService.obterUsuarioAtual();
+        return completionService.listar(user, entryId);
     }
 
     @PutMapping("/{habitId}")
-    public DailyHabitCompletionResponse update(
+    public DailyHabitCompletionResponse atualizar(
         @PathVariable Long entryId,
         @PathVariable Long habitId,
-        @Valid @RequestBody DailyHabitCompletionRequest request
+        @Valid @RequestBody DailyHabitCompletionRequest requisicao
     ) {
-        User user = currentUserService.getCurrentUser();
-        return completionService.update(user, entryId, habitId, request);
+        User user = currentUserService.obterUsuarioAtual();
+        return completionService.atualizar(user, entryId, habitId, requisicao);
     }
 }

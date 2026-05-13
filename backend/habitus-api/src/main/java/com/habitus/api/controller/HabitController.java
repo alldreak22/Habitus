@@ -33,39 +33,39 @@ public class HabitController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public HabitResponse create(@Valid @RequestBody HabitRequest request) {
-        User user = currentUserService.getCurrentUser();
-        return habitService.create(user, request);
+    public HabitResponse criar(@Valid @RequestBody HabitRequest requisicao) {
+        User user = currentUserService.obterUsuarioAtual();
+        return habitService.criar(user, requisicao);
     }
 
     @GetMapping
-    public List<HabitResponse> list() {
-        User user = currentUserService.getCurrentUser();
-        return habitService.list(user);
+    public List<HabitResponse> listar() {
+        User user = currentUserService.obterUsuarioAtual();
+        return habitService.listar(user);
     }
 
     @GetMapping("/{id}")
-    public HabitResponse get(@PathVariable Long id) {
-        User user = currentUserService.getCurrentUser();
-        return habitService.get(user, id);
+    public HabitResponse buscar(@PathVariable Long id) {
+        User user = currentUserService.obterUsuarioAtual();
+        return habitService.buscar(user, id);
     }
 
     @PutMapping("/{id}")
-    public HabitResponse update(@PathVariable Long id, @Valid @RequestBody HabitRequest request) {
-        User user = currentUserService.getCurrentUser();
-        return habitService.update(user, id, request);
+    public HabitResponse atualizar(@PathVariable Long id, @Valid @RequestBody HabitRequest requisicao) {
+        User user = currentUserService.obterUsuarioAtual();
+        return habitService.atualizar(user, id, requisicao);
     }
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void delete(@PathVariable Long id) {
-        User user = currentUserService.getCurrentUser();
-        habitService.deactivate(user, id);
+    public void excluir(@PathVariable Long id) {
+        User user = currentUserService.obterUsuarioAtual();
+        habitService.desativar(user, id);
     }
 
     @GetMapping("/{id}/history")
-    public List<DailyHabitCompletionResponse> history(@PathVariable Long id) {
-        User user = currentUserService.getCurrentUser();
-        return habitService.history(user, id);
+    public List<DailyHabitCompletionResponse> historico(@PathVariable Long id) {
+        User user = currentUserService.obterUsuarioAtual();
+        return habitService.historico(user, id);
     }
 }

@@ -17,32 +17,43 @@ import com.habitus.api.dto.response.ErrorResponse;
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(ApiException.class)
-    ResponseEntity<ErrorResponse> handleApiException(ApiException exception) {
-        return buildResponse(exception.getStatus(), exception.getMessage(), null);
+    ResponseEntity<ErrorResponse> tratarApiException(ApiException exception) {
+        return montarResposta(exception.getStatus(), exception.getMessage(), null);
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    ResponseEntity<ErrorResponse> handleValidation(MethodArgumentNotValidException exception) {
-        Map<String, String> fields = new HashMap<>();
+    ResponseEntity<ErrorResponse> tratarValidacao(MethodArgumentNotValidException exception) {
+        Map<String, String> campos = new HashMap<>();
         for (FieldError error : exception.getBindingResult().getFieldErrors()) {
-            fields.put(error.getField(), error.getDefaultMessage());
+            campos.put(error.getField(), error.getDefaultMessage());
         }
-        return buildResponse(HttpStatus.BAD_REQUEST, "Invalid request data", fields);
+        return montarResposta(HttpStatus.BAD_REQUEST, "Dados da requisição inválidos", campos);
     }
 
     @ExceptionHandler(Exception.class)
-    ResponseEntity<ErrorResponse> handleUnexpected(Exception exception) {
-        return buildResponse(HttpStatus.INTERNAL_SERVER_ERROR, "Unexpected server error", null);
+    ResponseEntity<ErrorResponse> tratarInesperado(Exception exception) {
+        return montarResposta(HttpStatus.INTERNAL_SERVER_ERROR, "Erro interno inesperado", null);
     }
 
-    private ResponseEntity<ErrorResponse> buildResponse(HttpStatus status, String message, Map<String, String> fields) {
-        ErrorResponse response = new ErrorResponse(
+    private ResponseEntity<ErrorResponse> montarResposta(HttpStatus status, String message, Map<String, String> campos) {
+        ErrorResponse resposta = new ErrorResponse(
             LocalDateTime.now(),
             status.value(),
-            status.getReasonPhrase(),
+            traduzirStatus(status),
             message,
-            fields
+            campos
         );
-        return ResponseEntity.status(status).body(response);
+        return ResponseEntity.status(status).body(resposta);
+    }
+
+    private String traduzirStatus(HttpStatus status) {
+        return switch (status) {
+            case BAD_REQUEST -> "Requisição inválida";
+            case UNAUTHORIZED -> "Não autorizado";
+            case NOT_FOUND -> "Não encontrado";
+            case CONFLICT -> "Conflito";
+            case INTERNAL_SERVER_ERROR -> "Erro interno do servidor";
+            default -> status.getReasonPhrase();
+        };
     }
 }

@@ -25,48 +25,48 @@ public class DailyEntryService {
     private final ApiMapper mapper;
 
     @Transactional
-    public DailyEntryResponse create(User user, DailyEntryRequest request) {
-        if (dailyEntryRepository.existsByUserIdAndEntryDate(user.getId(), request.entryDate())) {
-            throw new ApiException(HttpStatus.CONFLICT, "Daily entry already exists for this date");
+    public DailyEntryResponse criar(User user, DailyEntryRequest requisicao) {
+        if (dailyEntryRepository.existsByUserIdAndEntryDate(user.getId(), requisicao.entryDate())) {
+            throw new ApiException(HttpStatus.CONFLICT, "Entrada diária já existe para esta data");
         }
 
         DailyEntry entry = new DailyEntry();
         entry.setUser(user);
-        applyRequest(entry, request);
+        aplicarRequisicao(entry, requisicao);
         return mapper.toDailyEntryResponse(dailyEntryRepository.save(entry));
     }
 
     @Transactional(readOnly = true)
-    public DailyEntryResponse getByDate(User user, LocalDate date) {
-        return mapper.toDailyEntryResponse(findByUserAndDate(user, date));
+    public DailyEntryResponse buscarPorData(User user, LocalDate date) {
+        return mapper.toDailyEntryResponse(buscarPorUsuarioEData(user, date));
     }
 
     @Transactional
-    public DailyEntryResponse update(User user, Long id, DailyEntryRequest request) {
-        DailyEntry entry = findUserEntry(user, id);
+    public DailyEntryResponse atualizar(User user, Long id, DailyEntryRequest requisicao) {
+        DailyEntry entry = buscarEntradaDoUsuario(user, id);
 
-        if (!entry.getEntryDate().equals(request.entryDate())
-            && dailyEntryRepository.existsByUserIdAndEntryDate(user.getId(), request.entryDate())) {
-            throw new ApiException(HttpStatus.CONFLICT, "Daily entry already exists for this date");
+        if (!entry.getEntryDate().equals(requisicao.entryDate())
+            && dailyEntryRepository.existsByUserIdAndEntryDate(user.getId(), requisicao.entryDate())) {
+            throw new ApiException(HttpStatus.CONFLICT, "Entrada diária já existe para esta data");
         }
 
-        applyRequest(entry, request);
+        aplicarRequisicao(entry, requisicao);
         return mapper.toDailyEntryResponse(dailyEntryRepository.save(entry));
     }
 
-    DailyEntry findUserEntry(User user, Long entryId) {
+    DailyEntry buscarEntradaDoUsuario(User user, Long entryId) {
         return dailyEntryRepository.findByIdAndUserId(entryId, user.getId())
-            .orElseThrow(() -> new NotFoundException("Daily entry not found"));
+            .orElseThrow(() -> new NotFoundException("Entrada diária não encontrada"));
     }
 
-    private DailyEntry findByUserAndDate(User user, LocalDate date) {
+    private DailyEntry buscarPorUsuarioEData(User user, LocalDate date) {
         return dailyEntryRepository.findByUserIdAndEntryDate(user.getId(), date)
-            .orElseThrow(() -> new NotFoundException("Daily entry not found"));
+            .orElseThrow(() -> new NotFoundException("Entrada diária não encontrada"));
     }
 
-    private void applyRequest(DailyEntry entry, DailyEntryRequest request) {
-        entry.setEntryDate(request.entryDate());
-        entry.setMarkdownContent(request.markdownContent());
-        entry.setPlanningNotes(request.planningNotes());
+    private void aplicarRequisicao(DailyEntry entry, DailyEntryRequest requisicao) {
+        entry.setEntryDate(requisicao.entryDate());
+        entry.setMarkdownContent(requisicao.markdownContent());
+        entry.setPlanningNotes(requisicao.planningNotes());
     }
 }

@@ -10,22 +10,22 @@ import com.habitus.api.exception.UnauthorizedException;
 @Service
 public class TokenService {
 
-    private static final String PREFIX = "fake-token-";
+    private static final String PREFIXO = "fake-token-";
 
-    public String createToken(Long userId) {
-        String rawToken = PREFIX + userId;
-        return Base64.getUrlEncoder().withoutPadding().encodeToString(rawToken.getBytes(StandardCharsets.UTF_8));
+    public String criarToken(Long userId) {
+        String tokenDecodificado = PREFIXO + userId;
+        return Base64.getUrlEncoder().withoutPadding().encodeToString(tokenDecodificado.getBytes(StandardCharsets.UTF_8));
     }
 
-    public Long readUserId(String token) {
+    public Long lerIdUsuario(String token) {
         try {
-            String rawToken = new String(Base64.getUrlDecoder().decode(token), StandardCharsets.UTF_8);
-            if (!rawToken.startsWith(PREFIX)) {
-                throw new UnauthorizedException("Invalid token");
+            String tokenDecodificado = new String(Base64.getUrlDecoder().decode(token), StandardCharsets.UTF_8);
+            if (!tokenDecodificado.startsWith(PREFIXO)) {
+                throw new UnauthorizedException("Token inválido");
             }
-            return Long.parseLong(rawToken.substring(PREFIX.length()));
+            return Long.parseLong(tokenDecodificado.substring(PREFIXO.length()));
         } catch (IllegalArgumentException exception) {
-            throw new UnauthorizedException("Invalid token");
+            throw new UnauthorizedException("Token inválido");
         }
     }
 }

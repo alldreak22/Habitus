@@ -27,43 +27,43 @@ public class AuthService {
     private final ApiMapper mapper;
 
     @Transactional
-    public AuthResponse register(RegisterRequest request) {
-        String email = normalizeEmail(request.email());
+    public AuthResponse registrar(RegisterRequest requisicao) {
+        String email = normalizarEmail(requisicao.email());
         if (userRepository.existsByEmailIgnoreCase(email)) {
-            throw new ApiException(HttpStatus.CONFLICT, "Email is already registered");
+            throw new ApiException(HttpStatus.CONFLICT, "E-mail já cadastrado");
         }
 
         User user = new User();
-        user.setName(request.name().trim());
+        user.setName(requisicao.name().trim());
         user.setEmail(email);
-        user.setPassword(passwordEncoder.encode(request.password()));
+        user.setPassword(passwordEncoder.encode(requisicao.password()));
         User savedUser = userRepository.save(user);
 
-        return authResponse(savedUser);
+        return respostaAutenticacao(savedUser);
     }
 
     @Transactional(readOnly = true)
-    public AuthResponse login(LoginRequest request) {
-        User user = userRepository.findByEmailIgnoreCase(normalizeEmail(request.email()))
-            .orElseThrow(() -> new UnauthorizedException("Invalid email or password"));
+    public AuthResponse login(LoginRequest requisicao) {
+        User user = userRepository.findByEmailIgnoreCase(normalizarEmail(requisicao.email()))
+            .orElseThrow(() -> new UnauthorizedException("E-mail ou senha inválidos"));
 
-        if (!passwordEncoder.matches(request.password(), user.getPassword())) {
-            throw new UnauthorizedException("Invalid email or password");
+        if (!passwordEncoder.matches(requisicao.password(), user.getPassword())) {
+            throw new UnauthorizedException("E-mail ou senha inválidos");
         }
 
-        return authResponse(user);
+        return respostaAutenticacao(user);
     }
 
     @Transactional(readOnly = true)
-    public UserResponse me(User user) {
+    public UserResponse buscarUsuarioAtual(User user) {
         return mapper.toUserResponse(user);
     }
 
-    private AuthResponse authResponse(User user) {
-        return new AuthResponse(mapper.toUserResponse(user), tokenService.createToken(user.getId()), "Bearer");
+    private AuthResponse respostaAutenticacao(User user) {
+        return new AuthResponse(mapper.toUserResponse(user), tokenService.criarToken(user.getId()), "Bearer");
     }
 
-    private String normalizeEmail(String email) {
+    private String normalizarEmail(String email) {
         return email.trim().toLowerCase();
     }
 }

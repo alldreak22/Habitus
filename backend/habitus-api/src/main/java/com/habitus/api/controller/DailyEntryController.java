@@ -31,20 +31,20 @@ public class DailyEntryController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public DailyEntryResponse create(@Valid @RequestBody DailyEntryRequest request) {
-        User user = currentUserService.getCurrentUser();
-        return dailyEntryService.create(user, request);
+    public DailyEntryResponse criar(@Valid @RequestBody DailyEntryRequest requisicao) {
+        User user = currentUserService.obterUsuarioAtual();
+        return dailyEntryService.criar(user, requisicao);
     }
 
     @GetMapping("/date/{date}")
-    public DailyEntryResponse getByDate(@PathVariable LocalDate date) {
-        User user = currentUserService.getCurrentUser();
-        return dailyEntryService.getByDate(user, date);
+    public DailyEntryResponse buscarPorData(@PathVariable LocalDate date) {
+        User user = currentUserService.obterUsuarioAtual();
+        return dailyEntryService.buscarPorData(user, date);
     }
 
     @PutMapping("/{id}")
-    public DailyEntryResponse update(@PathVariable Long id, @Valid @RequestBody DailyEntryRequest request) {
-        User user = currentUserService.getCurrentUser();
-        return dailyEntryService.update(user, id, request);
+    public DailyEntryResponse atualizar(@PathVariable Long id, @Valid @RequestBody DailyEntryRequest requisicao) {
+        User user = currentUserService.obterUsuarioAtual();
+        return dailyEntryService.atualizar(user, id, requisicao);
     }
 }

@@ -5,7 +5,7 @@ import java.time.LocalDate;
 import jakarta.validation.constraints.NotNull;
 
 public record DailyEntryRequest(
-    @NotNull LocalDate entryDate,
+    @NotNull(message = "Data da entrada é obrigatória") LocalDate entryDate,
     String markdownContent,
     String planningNotes
 ) {

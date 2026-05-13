@@ -28,17 +28,17 @@ public class AuthController {
 
     @PostMapping("/auth/register")
     @ResponseStatus(HttpStatus.CREATED)
-    public AuthResponse register(@Valid @RequestBody RegisterRequest request) {
-        return authService.register(request);
+    public AuthResponse registrar(@Valid @RequestBody RegisterRequest requisicao) {
+        return authService.registrar(requisicao);
     }
 
     @PostMapping("/auth/login")
-    public AuthResponse login(@Valid @RequestBody LoginRequest request) {
-        return authService.login(request);
+    public AuthResponse login(@Valid @RequestBody LoginRequest requisicao) {
+        return authService.login(requisicao);
     }
 
     @GetMapping("/users/me")
-    public UserResponse me() {
-        return authService.me(currentUserService.getCurrentUser());
+    public UserResponse usuarioAtual() {
+        return authService.buscarUsuarioAtual(currentUserService.obterUsuarioAtual());
     }
 }
