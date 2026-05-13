@@ -47,6 +47,7 @@ public class HabitService {
         return mapper.toHabitResponse(findUserHabit(user, id));
     }
 
+    @SuppressWarnings("null")
     @Transactional
     public HabitResponse update(User user, Long id, HabitRequest request) {
         Habit habit = findUserHabit(user, id);

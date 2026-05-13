@@ -18,6 +18,7 @@ public class CurrentUserService {
     private final TokenService tokenService;
     private final UserRepository userRepository;
 
+    @SuppressWarnings("null")
     public User getCurrentUser() {
         HttpServletRequest request = currentRequest();
         String authorization = request.getHeader("Authorization");
