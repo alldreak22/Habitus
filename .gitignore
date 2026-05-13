@@ -1,4 +1,23 @@
+# Local editor settings
+.vscode/
+.idea/
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Local data and databases
 data/
 *.db
 *.sqlite
 *.sqlite3
+
+# Java / Maven build output
+target/
+backend/**/target/
+
+# Logs and OS files
+*.log
+.DS_Store
+Thumbs.db

@@ -1,17 +1,21 @@
 spring:
+  config:
+    import:
+      - optional:file:.env[.properties]
+      - optional:file:backend/habitus-api/.env[.properties]
   application:
-    name: habitus-api
+    name: ${APP_NAME:habitus-api}
   datasource:
-    url: jdbc:sqlite:data/habitus.db
-    driver-class-name: org.sqlite.JDBC
+    url: ${DATABASE_URL:jdbc:sqlite:data/habitus.db}
+    driver-class-name: ${DATABASE_DRIVER:org.sqlite.JDBC}
   jpa:
-    database-platform: org.hibernate.community.dialect.SQLiteDialect
+    database-platform: ${JPA_DATABASE_PLATFORM:org.hibernate.community.dialect.SQLiteDialect}
     hibernate:
-      ddl-auto: update
-    show-sql: false
+      ddl-auto: ${JPA_DDL_AUTO:update}
+    show-sql: ${JPA_SHOW_SQL:false}
     properties:
       hibernate:
-        format_sql: true
+        format_sql: ${JPA_FORMAT_SQL:true}
 
 server:
-  port: 8080
+  port: ${SERVER_PORT:8080}
