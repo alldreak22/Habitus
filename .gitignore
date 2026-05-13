@@ -17,6 +17,12 @@ data/
 target/
 backend/**/target/
 
+# Node / React build output
+node_modules/
+frontend/**/node_modules/
+frontend/**/dist/
+frontend/**/.vite/
+
 # Logs and OS files
 *.log
 .DS_Store
