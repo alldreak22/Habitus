@@ -1,6 +1,44 @@
 # Habitus API
 
-API principal do Habitus, implementada em Java 21 com Spring Boot, Spring Web, Spring Data JPA, Bean Validation, Maven e SQLite.
+API principal do Habitus, implementada em Java 21 com Spring Boot 3.3, Spring Web, Spring Data JPA, Bean Validation, Spring Security Crypto, Maven e SQLite.
+
+## Responsabilidades
+
+- Cadastro e login de usuários.
+- Identificação do usuário atual por token simples.
+- CRUD de hábitos.
+- Registro de entradas diárias.
+- Planejamento de hábitos para uma entrada diária.
+- Marcação de hábitos como concluídos.
+- Exposição da versão da aplicação.
+
+## Requisitos
+
+- Java 21.
+- Maven.
+
+## Configuração
+
+Crie um arquivo `.env` a partir de `.env.example` quando precisar alterar portas, versão ou banco.
+
+Variáveis principais:
+
+```properties
+APP_NAME=habitus-api
+APP_DISPLAY_NAME=Habitus
+APP_VERSION=1.0.1
+SERVER_PORT=8080
+DATABASE_URL=jdbc:sqlite:data/habitus.db
+JPA_DDL_AUTO=update
+```
+
+Por padrão, o banco SQLite é criado em:
+
+```txt
+backend/habitus-api/data/habitus.db
+```
+
+O diretório `data/` e arquivos `*.db`, `*.sqlite` e `*.sqlite3` não devem ser versionados.
 
 ## Como rodar
 
@@ -8,23 +46,23 @@ API principal do Habitus, implementada em Java 21 com Spring Boot, Spring Web, S
 mvn spring-boot:run
 ```
 
-A aplicação sobe em `http://localhost:8080` e cria automaticamente o banco local em:
+A aplicação sobe em `http://localhost:8080`.
 
-```text
-data/habitus.db
+## Testes
+
+```bash
+mvn test
 ```
 
-O diretório `data/` e arquivos `*.db`, `*.sqlite` e `*.sqlite3` não devem ser versionados.
+## Autenticação
 
-## Autenticação inicial
-
-Esta primeira versão usa um token simples retornado pelo cadastro/login. Envie o token nas rotas protegidas:
+A versão atual usa um token simples retornado pelo cadastro ou login. Envie esse token nas rotas protegidas:
 
 ```http
 Authorization: Bearer <token>
 ```
 
-Esse formato foi feito para ser substituído por JWT depois.
+Esse formato é temporário e foi pensado para ser substituído por JWT ou outro mecanismo mais robusto.
 
 ## Fluxo rápido para Postman/Insomnia
 
@@ -53,6 +91,13 @@ Content-Type: application/json
 }
 ```
 
+### Consultar usuário atual
+
+```http
+GET /api/users/me
+Authorization: Bearer <token>
+```
+
 ### Criar hábito
 
 ```http
@@ -61,13 +106,24 @@ Authorization: Bearer <token>
 Content-Type: application/json
 
 {
-  "name": "Tomar pelo menos 1L de agua",
-  "description": "Beber agua ao longo do dia",
-  "targetFrequency": "DAILY",
+  "name": "Beber água",
+  "icon": "water_drop",
+  "color": "#2f80ed",
+  "description": "Beber água ao longo do dia",
+  "targetFrequency": "EVERY_DAY",
   "timesPerDay": 3,
-  "suggestedTimes": "08:00,14:00,20:00"
+  "reminder": true,
+  "reminderTimes": ["08:00", "14:00", "20:00"],
+  "frequencyDays": [1, 2, 3, 4, 5],
+  "status": "ACTIVE"
 }
 ```
+
+Campos aceitos por compatibilidade:
+
+- `name` e `title` representam o nome/título do hábito.
+- `targetFrequency` e `frequencyType` representam a frequência.
+- `suggestedTimes` e `reminderTimes` representam horários sugeridos/lembretes.
 
 ### Criar entrada diária
 
@@ -105,7 +161,7 @@ Content-Type: application/json
 {
   "habitId": 1,
   "completed": true,
-  "notes": "Concluido durante a tarde."
+  "notes": "Concluído durante a tarde."
 }
 ```
 
@@ -118,6 +174,7 @@ Authorization: Bearer <token>
 
 ## Endpoints principais
 
+- `GET /api/version`
 - `POST /api/auth/register`
 - `POST /api/auth/login`
 - `GET /api/users/me`
@@ -136,3 +193,10 @@ Authorization: Bearer <token>
 - `POST /api/daily-entries/{entryId}/completed-habits`
 - `GET /api/daily-entries/{entryId}/completed-habits`
 - `PUT /api/daily-entries/{entryId}/completed-habits/{habitId}`
+
+## CORS
+
+A API permite chamadas para `/api/**` a partir de:
+
+- `http://localhost:5173`
+- `http://localhost:3000`
