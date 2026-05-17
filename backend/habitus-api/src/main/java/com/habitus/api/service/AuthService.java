@@ -30,13 +30,14 @@ public class AuthService {
     public AuthResponse registrar(RegisterRequest requisicao) {
         String email = normalizarEmail(requisicao.email());
         if (userRepository.existsByEmailIgnoreCase(email)) {
-            throw new ApiException(HttpStatus.CONFLICT, "E-mail já cadastrado");
+            throw new ApiException(HttpStatus.CONFLICT, "E-mail j\u00e1 cadastrado");
         }
 
         User user = new User();
         user.setName(requisicao.name().trim());
         user.setEmail(email);
-        user.setPassword(passwordEncoder.encode(requisicao.password()));
+        user.setNick(gerarNickUnico(email));
+        user.setPasswordHash(passwordEncoder.encode(requisicao.password()));
         User savedUser = userRepository.save(user);
 
         return respostaAutenticacao(savedUser);
@@ -45,10 +46,10 @@ public class AuthService {
     @Transactional(readOnly = true)
     public AuthResponse login(LoginRequest requisicao) {
         User user = userRepository.findByEmailIgnoreCase(normalizarEmail(requisicao.email()))
-            .orElseThrow(() -> new UnauthorizedException("E-mail ou senha inválidos"));
+            .orElseThrow(() -> new UnauthorizedException("E-mail ou senha inv\u00e1lidos"));
 
-        if (!passwordEncoder.matches(requisicao.password(), user.getPassword())) {
-            throw new UnauthorizedException("E-mail ou senha inválidos");
+        if (!passwordEncoder.matches(requisicao.password(), user.getPasswordHash())) {
+            throw new UnauthorizedException("E-mail ou senha inv\u00e1lidos");
         }
 
         return respostaAutenticacao(user);
@@ -65,5 +66,20 @@ public class AuthService {
 
     private String normalizarEmail(String email) {
         return email.trim().toLowerCase();
+    }
+
+    private String gerarNickUnico(String email) {
+        String base = email.substring(0, email.indexOf('@')).replaceAll("[^a-zA-Z0-9._-]", "").toLowerCase();
+        if (base.isBlank()) {
+            base = "user";
+        }
+
+        String candidate = base;
+        int suffix = 1;
+        while (userRepository.existsByNickIgnoreCase(candidate)) {
+            candidate = base + suffix;
+            suffix++;
+        }
+        return candidate;
     }
 }

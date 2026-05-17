@@ -9,5 +9,7 @@ import com.habitus.api.entity.User;
 public interface UserRepository extends JpaRepository<User, Long> {
     boolean existsByEmailIgnoreCase(String email);
 
+    boolean existsByNickIgnoreCase(String nick);
+
     Optional<User> findByEmailIgnoreCase(String email);
 }

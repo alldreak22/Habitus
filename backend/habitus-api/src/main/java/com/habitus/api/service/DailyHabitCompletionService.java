@@ -37,6 +37,7 @@ public class DailyHabitCompletionService {
             .orElseGet(DailyHabitCompletion::new);
         completion.setDailyEntry(entry);
         completion.setHabit(habit);
+        completion.setOverrideAction("SELECTED");
         completion.setCompleted(requisicao.completed());
         completion.setNotes(requisicao.notes());
 
@@ -58,11 +59,12 @@ public class DailyHabitCompletionService {
         habitService.buscarHabitoDoUsuario(user, habitId);
 
         if (!habitId.equals(requisicao.habitId())) {
-            throw new ApiException(HttpStatus.BAD_REQUEST, "Hábito da rota e do corpo devem ser iguais");
+            throw new ApiException(HttpStatus.BAD_REQUEST, "H\u00e1bito da rota e do corpo devem ser iguais");
         }
 
         DailyHabitCompletion completion = completionRepository.findByDailyEntryIdAndHabitId(entry.getId(), habitId)
-            .orElseThrow(() -> new NotFoundException("Hábito concluído não encontrado"));
+            .orElseThrow(() -> new NotFoundException("Habito concluido nao encontrado"));
+        completion.setOverrideAction("SELECTED");
         completion.setCompleted(requisicao.completed());
         completion.setNotes(requisicao.notes());
 

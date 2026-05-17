@@ -13,6 +13,7 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
 import jakarta.persistence.UniqueConstraint;
 import lombok.Getter;
 import lombok.Setter;
@@ -21,8 +22,8 @@ import lombok.Setter;
 @Setter
 @Entity
 @Table(
-    name = "daily_habit_completions",
-    uniqueConstraints = @UniqueConstraint(columnNames = {"daily_entry_id", "habit_id"})
+    name = "day_entry_habits",
+    uniqueConstraints = @UniqueConstraint(columnNames = {"day_entry_id", "habit_id"})
 )
 public class DailyHabitCompletion {
 
@@ -31,28 +32,40 @@ public class DailyHabitCompletion {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "daily_entry_id", nullable = false)
+    @JoinColumn(name = "day_entry_id", nullable = false)
     private DailyEntry dailyEntry;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "habit_id", nullable = false)
     private Habit habit;
 
+    @Column(name = "override_action")
+    private String overrideAction;
+
     @Column(nullable = false)
-    private Boolean completed;
+    private Boolean completed = false;
 
     private LocalDateTime completedAt;
 
-    @Column(columnDefinition = "TEXT")
+    @Transient
     private String notes;
+
+    @Column(nullable = false, updatable = false)
+    private LocalDateTime createdAt;
+
+    private LocalDateTime updatedAt;
 
     @PrePersist
     void prePersist() {
+        LocalDateTime now = LocalDateTime.now();
+        createdAt = now;
+        updatedAt = now;
         updateCompletedAt();
     }
 
     @PreUpdate
     void preUpdate() {
+        updatedAt = LocalDateTime.now();
         updateCompletedAt();
     }
 

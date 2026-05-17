@@ -54,7 +54,7 @@ public class DailyHabitPlanService {
         DailyEntry entry = dailyEntryService.buscarEntradaDoUsuario(user, entryId);
         habitService.buscarHabitoDoUsuario(user, habitId);
         if (!planRepository.existsByDailyEntryIdAndHabitId(entry.getId(), habitId)) {
-            throw new NotFoundException("Hábito planejado não encontrado");
+            throw new NotFoundException("H\u00e1bito planejado n\u00e3o encontrado");
         }
         planRepository.deleteByDailyEntryIdAndHabitId(entry.getId(), habitId);
     }

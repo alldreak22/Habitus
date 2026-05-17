@@ -27,7 +27,7 @@ public class DailyEntryService {
     @Transactional
     public DailyEntryResponse criar(User user, DailyEntryRequest requisicao) {
         if (dailyEntryRepository.existsByUserIdAndEntryDate(user.getId(), requisicao.entryDate())) {
-            throw new ApiException(HttpStatus.CONFLICT, "Entrada diária já existe para esta data");
+            throw new ApiException(HttpStatus.CONFLICT, "Entrada di\u00e1ria j\u00e1 existe para esta data");
         }
 
         DailyEntry entry = new DailyEntry();
@@ -47,7 +47,7 @@ public class DailyEntryService {
 
         if (!entry.getEntryDate().equals(requisicao.entryDate())
             && dailyEntryRepository.existsByUserIdAndEntryDate(user.getId(), requisicao.entryDate())) {
-            throw new ApiException(HttpStatus.CONFLICT, "Entrada diária já existe para esta data");
+            throw new ApiException(HttpStatus.CONFLICT, "Entrada di\u00e1ria j\u00e1 existe para esta data");
         }
 
         aplicarRequisicao(entry, requisicao);
@@ -56,17 +56,17 @@ public class DailyEntryService {
 
     DailyEntry buscarEntradaDoUsuario(User user, Long entryId) {
         return dailyEntryRepository.findByIdAndUserId(entryId, user.getId())
-            .orElseThrow(() -> new NotFoundException("Entrada diária não encontrada"));
+            .orElseThrow(() -> new NotFoundException("Entrada diaria nao encontrada"));
     }
 
     private DailyEntry buscarPorUsuarioEData(User user, LocalDate date) {
         return dailyEntryRepository.findByUserIdAndEntryDate(user.getId(), date)
-            .orElseThrow(() -> new NotFoundException("Entrada diária não encontrada"));
+            .orElseThrow(() -> new NotFoundException("Entrada diaria nao encontrada"));
     }
 
     private void aplicarRequisicao(DailyEntry entry, DailyEntryRequest requisicao) {
         entry.setEntryDate(requisicao.entryDate());
-        entry.setMarkdownContent(requisicao.markdownContent());
+        entry.setActivityDescription(requisicao.markdownContent());
         entry.setPlanningNotes(requisicao.planningNotes());
     }
 }

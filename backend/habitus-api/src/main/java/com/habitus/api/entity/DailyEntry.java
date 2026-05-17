@@ -18,6 +18,7 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
 import jakarta.persistence.UniqueConstraint;
 import lombok.Getter;
 import lombok.Setter;
@@ -26,7 +27,7 @@ import lombok.Setter;
 @Setter
 @Entity
 @Table(
-    name = "daily_entries",
+    name = "day_entries",
     uniqueConstraints = @UniqueConstraint(columnNames = {"user_id", "entry_date"})
 )
 public class DailyEntry {
@@ -42,10 +43,10 @@ public class DailyEntry {
     @Column(name = "entry_date", nullable = false)
     private LocalDate entryDate;
 
-    @Column(columnDefinition = "TEXT")
-    private String markdownContent;
+    @Column(name = "activity_description", columnDefinition = "TEXT")
+    private String activityDescription;
 
-    @Column(columnDefinition = "TEXT")
+    @Transient
     private String planningNotes;
 
     @OneToMany(mappedBy = "dailyEntry", cascade = CascadeType.ALL, orphanRemoval = true)
@@ -54,10 +55,9 @@ public class DailyEntry {
     @OneToMany(mappedBy = "dailyEntry", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<DailyHabitCompletion> completedHabits = new ArrayList<>();
 
-    @Column(nullable = false)
+    @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
-    @Column(nullable = false)
     private LocalDateTime updatedAt;
 
     @PrePersist

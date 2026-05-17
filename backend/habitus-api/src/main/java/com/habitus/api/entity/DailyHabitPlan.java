@@ -11,7 +11,9 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.PrePersist;
+import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
 import jakarta.persistence.UniqueConstraint;
 import lombok.Getter;
 import lombok.Setter;
@@ -20,8 +22,8 @@ import lombok.Setter;
 @Setter
 @Entity
 @Table(
-    name = "daily_habit_plans",
-    uniqueConstraints = @UniqueConstraint(columnNames = {"daily_entry_id", "habit_id"})
+    name = "day_entry_habits",
+    uniqueConstraints = @UniqueConstraint(columnNames = {"day_entry_id", "habit_id"})
 )
 public class DailyHabitPlan {
 
@@ -30,24 +32,47 @@ public class DailyHabitPlan {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "daily_entry_id", nullable = false)
+    @JoinColumn(name = "day_entry_id", nullable = false)
     private DailyEntry dailyEntry;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "habit_id", nullable = false)
     private Habit habit;
 
-    @Column(nullable = false)
-    private Boolean planned = true;
+    @Column(name = "override_action")
+    private String overrideAction;
 
     @Column(nullable = false)
+    private Boolean completed = false;
+
+    private LocalDateTime completedAt;
+
+    @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
+
+    private LocalDateTime updatedAt;
 
     @PrePersist
     void prePersist() {
-        createdAt = LocalDateTime.now();
-        if (planned == null) {
-            planned = true;
+        LocalDateTime now = LocalDateTime.now();
+        createdAt = now;
+        updatedAt = now;
+        if (completed == null) {
+            completed = false;
         }
+    }
+
+    @PreUpdate
+    void preUpdate() {
+        updatedAt = LocalDateTime.now();
+    }
+
+    @Transient
+    public Boolean getPlanned() {
+        return !"DESELECTED".equals(overrideAction);
+    }
+
+    public void setPlanned(Boolean planned) {
+        overrideAction = Boolean.FALSE.equals(planned) ? "DESELECTED" : "SELECTED";
     }
 }
