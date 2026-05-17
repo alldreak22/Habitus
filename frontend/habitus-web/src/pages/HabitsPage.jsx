@@ -1,23 +1,38 @@
 ﻿import { useEffect, useMemo, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import Button from '../components/Button.jsx';
 import IconButton from '../components/IconButton.jsx';
 import TipCard from '../components/TipCard.jsx';
 import DaySummary from '../components/calendar/DaySummary.jsx';
+import HabitChoiceDropdown from '../components/habits/HabitChoiceDropdown.jsx';
 import TopBar from '../components/layout/TopBar.jsx';
+import SegmentedSettingControl from '../components/settings/SegmentedSettingControl.jsx';
+import ToggleSwitch from '../components/settings/ToggleSwitch.jsx';
 import habitFormContent from '../content/habitFormContent.json';
 import { getDaySummary } from '../services/calendarService.js';
 import { getHabits, getWeeklyHabitProgress } from '../services/habitService.js';
 import { formatDateKey, getToday } from '../utils/date.js';
 
 const { colorOptions, iconOptions, initialForm, productivityTips, weekDays } = habitFormContent;
+const frequencyOptions = [
+  { label: 'Todos os dias', value: 'daily' },
+  { label: 'Dias úteis', value: 'weekdays' },
+  { label: 'Finais de Semana', value: 'weekends' },
+  { label: 'Personalizado', value: 'custom' },
+];
+const statusOptions = [
+  { label: 'Ativo', value: 'active' },
+  { label: 'Inativo', value: 'inactive' },
+];
 
 export default function HabitsPage() {
+  const location = useLocation();
+  const navigate = useNavigate();
   const today = useMemo(() => getToday(), []);
   const [editingHabit, setEditingHabit] = useState(null);
   const [habitPendingDeletion, setHabitPendingDeletion] = useState(null);
   const [habits, setHabits] = useState([]);
   const [isCreating, setIsCreating] = useState(false);
-  const [lastCreatedCount, setLastCreatedCount] = useState(0);
   const [searchTerm, setSearchTerm] = useState('');
   const [todaySummary, setTodaySummary] = useState([]);
   const [weeklyProgress, setWeeklyProgress] = useState(null);
@@ -27,6 +42,14 @@ export default function HabitsPage() {
     getWeeklyHabitProgress().then(setWeeklyProgress);
     getDaySummary(formatDateKey(today)).then(setTodaySummary);
   }, [today]);
+
+  useEffect(() => {
+    if (location.state?.startCreatingHabit) {
+      setEditingHabit(null);
+      setIsCreating(true);
+      navigate(location.pathname, { replace: true, state: null });
+    }
+  }, [location.pathname, location.state, navigate]);
 
   const activeCount = useMemo(() => habits.filter((habit) => habit.active).length, [habits]);
   const filteredHabits = useMemo(() => {
@@ -51,7 +74,6 @@ export default function HabitsPage() {
 
       return [newHabit, ...currentHabits];
     });
-    setLastCreatedCount((count) => count + 1);
     setEditingHabit(null);
     setIsCreating(false);
     setSearchTerm('');
@@ -112,7 +134,6 @@ export default function HabitsPage() {
               habit={editingHabit}
               onCancel={handleCancelForm}
               onSubmit={handleCreateHabit}
-              tipRefreshKey={lastCreatedCount}
             />
           ) : (
             <div className="habits-dashboard">
@@ -183,12 +204,39 @@ export default function HabitsPage() {
   );
 }
 
-function HabitForm({ habit, onCancel, onSubmit, tipRefreshKey }) {
+function HabitForm({ habit, onCancel, onSubmit }) {
   const [form, setForm] = useState(() => buildFormState(habit));
   const isCustomFrequency = form.frequency === 'custom';
+  const selectedIcon = iconOptions.find((option) => option.icon === form.icon) ?? iconOptions[0];
 
   function updateForm(field, value) {
     setForm((currentForm) => ({ ...currentForm, [field]: value }));
+  }
+
+  function updateSuggestedTime(index, value) {
+    setForm((currentForm) => ({
+      ...currentForm,
+      suggestedTimes: currentForm.suggestedTimes.map((time, timeIndex) =>
+        timeIndex === index ? value : time,
+      ),
+    }));
+  }
+
+  function addSuggestedTime() {
+    setForm((currentForm) => ({
+      ...currentForm,
+      suggestedTimes: [...currentForm.suggestedTimes, '08:00'],
+    }));
+  }
+
+  function removeSuggestedTime(index) {
+    setForm((currentForm) => ({
+      ...currentForm,
+      suggestedTimes:
+        currentForm.suggestedTimes.length > 1
+          ? currentForm.suggestedTimes.filter((_, timeIndex) => timeIndex !== index)
+          : [''],
+    }));
   }
 
   function toggleDay(dayKey) {
@@ -216,6 +264,7 @@ function HabitForm({ habit, onCancel, onSubmit, tipRefreshKey }) {
       icon: form.icon,
       id: habit?.id ?? `${Date.now()}`,
       name,
+      reminderEnabled: form.reminderEnabled,
       suggestedTimes: form.suggestedTimes.filter(Boolean).join(', '),
       targetFrequency: buildFrequencyLabel(form),
       timesPerDay: form.timesPerDay,
@@ -235,14 +284,74 @@ function HabitForm({ habit, onCancel, onSubmit, tipRefreshKey }) {
 
       <div className="habit-form-card">
         <header className="habit-form-heading">
-          <h1 id="habits-heading">{habit ? 'Editar Hábito' : 'Novo Hábito'}</h1>
-          <p>Crie uma rotina com nome, cor, ícone e frequência claros.</p>
+          <h1 id="habits-heading">
+            {habit ? 'Configure seu Hábito' : 'Configure seu novo Hábito'}
+          </h1>
         </header>
 
         <form className="habit-form" onSubmit={handleSubmit}>
-          <div className="habit-form-grid">
-            <label className="form-field wide">
-              <span>Nome</span>
+          <div className="habit-form-grid compact">
+            <label className="form-field form-field-choice">
+              <span>Ícone</span>
+              <HabitChoiceDropdown
+                label="Selecionar ícone do hábito"
+                renderValue={() => (
+                  <span className="material-symbols-outlined" aria-hidden="true">
+                    {selectedIcon.icon}
+                  </span>
+                )}
+              >
+                {(closeDropdown) => (
+                  <div className="habit-dropdown-icon-grid">
+                    {iconOptions.map((option) => (
+                      <button
+                        key={option.icon}
+                        className={form.icon === option.icon ? 'icon-choice selected' : 'icon-choice'}
+                        type="button"
+                        onClick={() => {
+                          updateForm('icon', option.icon);
+                          closeDropdown();
+                        }}
+                        aria-label={option.label}
+                      >
+                        <span className="material-symbols-outlined" aria-hidden="true">
+                          {option.icon}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </HabitChoiceDropdown>
+            </label>
+
+            <label className="form-field form-field-choice">
+              <span>Cor</span>
+              <HabitChoiceDropdown
+                label="Selecionar cor do hábito"
+                renderValue={() => <i className="habit-selected-color" style={{ backgroundColor: form.color }} />}
+              >
+                {(closeDropdown) => (
+                  <div className="habit-dropdown-color-grid">
+                    {colorOptions.map((color) => (
+                      <button
+                        key={color}
+                        className={form.color === color ? 'color-choice selected' : 'color-choice'}
+                        style={{ backgroundColor: color }}
+                        type="button"
+                        onClick={() => {
+                          updateForm('color', color);
+                          closeDropdown();
+                        }}
+                        aria-label={`Selecionar cor ${color}`}
+                      />
+                    ))}
+                  </div>
+                )}
+              </HabitChoiceDropdown>
+            </label>
+
+            <label className="form-field title-field">
+              <span>Título</span>
               <input
                 type="text"
                 value={form.name}
@@ -252,7 +361,7 @@ function HabitForm({ habit, onCancel, onSubmit, tipRefreshKey }) {
               />
             </label>
 
-            <label className="form-field wide">
+            <label className="form-field description-field">
               <span>Descrição</span>
               <input
                 type="text"
@@ -261,82 +370,16 @@ function HabitForm({ habit, onCancel, onSubmit, tipRefreshKey }) {
                 placeholder="Ex: Treino funcional por 30 minutos"
               />
             </label>
-
-            <label className="form-field status-field">
-              <span>Status</span>
-              <select
-                value={form.active ? 'active' : 'inactive'}
-                onChange={(event) => updateForm('active', event.target.value === 'active')}
-              >
-                <option value="active">Ativo</option>
-                <option value="inactive">Inativo</option>
-              </select>
-            </label>
           </div>
 
-          <fieldset className="choice-section">
-            <legend>Ícone</legend>
-            <div className="icon-choice-grid">
-              {iconOptions.map((option) => (
-                <button
-                  key={option.icon}
-                  className={form.icon === option.icon ? 'icon-choice selected' : 'icon-choice'}
-                  type="button"
-                  onClick={() => updateForm('icon', option.icon)}
-                  aria-label={option.label}
-                >
-                  <span className="material-symbols-outlined" aria-hidden="true">
-                    {option.icon}
-                  </span>
-                </button>
-              ))}
-            </div>
-          </fieldset>
-
-          <fieldset className="choice-section">
-            <legend>Cor</legend>
-            <div className="color-choice-grid">
-              {colorOptions.map((color) => (
-                <button
-                  key={color}
-                  className={form.color === color ? 'color-choice selected' : 'color-choice'}
-                  style={{ backgroundColor: color }}
-                  type="button"
-                  onClick={() => updateForm('color', color)}
-                  aria-label={`Selecionar cor ${color}`}
-                />
-              ))}
-            </div>
-          </fieldset>
-
-          <fieldset className="frequency-section">
-            <div className="frequency-heading">
-              <legend>Frequência</legend>
-              <p>Escolha quando este hábito entra na sua rotina.</p>
-            </div>
-            <div className="segmented-control" role="group" aria-label="Frequência">
-              <button
-                className={form.frequency === 'daily' ? 'selected' : ''}
-                type="button"
-                onClick={() => updateForm('frequency', 'daily')}
-              >
-                Todos os dias
-              </button>
-              <button
-                className={form.frequency === 'weekdays' ? 'selected' : ''}
-                type="button"
-                onClick={() => updateForm('frequency', 'weekdays')}
-              >
-                Dias da semana
-              </button>
-              <button
-                className={isCustomFrequency ? 'selected' : ''}
-                type="button"
-                onClick={() => updateForm('frequency', 'custom')}
-              >
-                Personalizado
-              </button>
-            </div>
+          <fieldset className="habit-control-row">
+            <legend>Frequência</legend>
+            <SegmentedSettingControl
+              label="Frequência"
+              options={frequencyOptions}
+              value={form.frequency}
+              onChange={(value) => updateForm('frequency', value)}
+            />
             {isCustomFrequency && (
               <div className="custom-frequency-panel">
                 <p>Dias selecionados</p>
@@ -356,48 +399,59 @@ function HabitForm({ habit, onCancel, onSubmit, tipRefreshKey }) {
             )}
           </fieldset>
 
-          <div className="execution-section">
-            <label className="form-field compact">
-              <span>Meta de execuções</span>
-              <input
-                min="1"
-                type="number"
-                value={form.timesPerDay}
-                onChange={(event) => updateForm('timesPerDay', Number(event.target.value))}
-              />
-            </label>
-            <label className="form-field compact">
-              <span>Horário</span>
-              <input
-                type="time"
-                value={form.suggestedTimes[0]}
-                onChange={(event) => updateForm('suggestedTimes', [event.target.value])}
-              />
-            </label>
-          </div>
-
-          <div className="reminder-row">
+          <div className="habit-control-row">
             <div>
-              <span className="material-symbols-outlined" aria-hidden="true">
-                notifications
-              </span>
-              <div>
-                <p>Lembrete diário</p>
-                <small>Receber notificação para não esquecer.</small>
-              </div>
+              <span className="habit-control-label">Horários</span>
+              <small>Defina os momentos ideais para este hábito.</small>
             </div>
-            <label className="switch">
-              <input type="checkbox" defaultChecked />
-              <span />
-            </label>
+            <div className="habit-time-list">
+              {form.suggestedTimes.map((time, index) => (
+                <div className="habit-time-chip" key={index}>
+                  <input
+                    type="time"
+                    value={time}
+                    onChange={(event) => updateSuggestedTime(index, event.target.value)}
+                  />
+                  <IconButton
+                    icon="close"
+                    label="Remover horário"
+                    onClick={() => removeSuggestedTime(index)}
+                  />
+                </div>
+              ))}
+              <button className="habit-add-time" type="button" onClick={addSuggestedTime}>
+                <span className="material-symbols-outlined" aria-hidden="true">
+                  add
+                </span>
+                Adicionar horário
+              </button>
+            </div>
           </div>
 
-          <TipCard
-            icon="auto_awesome"
-            items={productivityTips}
-            refreshKey={tipRefreshKey}
-            title="Dica de Produtividade"
-          />
+          <div className="habit-control-row">
+            <div>
+              <span className="habit-control-label">Lembrete</span>
+              <small>Receber notificação para não esquecer.</small>
+            </div>
+            <ToggleSwitch
+              checked={form.reminderEnabled}
+              label="Ativar lembrete do hábito"
+              onChange={(value) => updateForm('reminderEnabled', value)}
+            />
+          </div>
+
+          <div className="habit-control-row">
+            <div>
+              <span className="habit-control-label">Status</span>
+              <small>Defina se o hábito começa ativo na rotina.</small>
+            </div>
+            <SegmentedSettingControl
+              label="Status do hábito"
+              options={statusOptions}
+              value={form.active ? 'active' : 'inactive'}
+              onChange={(value) => updateForm('active', value === 'active')}
+            />
+          </div>
 
           <footer className="habit-form-actions">
             <button className="secondary-action" type="button" onClick={onCancel}>
@@ -422,6 +476,10 @@ function buildFrequencyLabel(form) {
     return 'Segunda a sexta';
   }
 
+  if (form.frequency === 'weekends') {
+    return 'Finais de semana';
+  }
+
   return `${form.selectedDays.length || 0} dias personalizados`;
 }
 
@@ -434,9 +492,10 @@ function buildFormState(habit) {
     active: habit.active,
     color: habit.color,
     description: habit.description,
-    frequency: 'daily',
+    frequency: habit.targetFrequency === 'Finais de semana' ? 'weekends' : 'daily',
     icon: habit.icon,
     name: habit.name,
+    reminderEnabled: true,
     selectedDays: initialForm.selectedDays,
     suggestedTimes: habit.suggestedTimes ? [habit.suggestedTimes.split(', ')[0]] : [''],
     timesPerDay: habit.timesPerDay,

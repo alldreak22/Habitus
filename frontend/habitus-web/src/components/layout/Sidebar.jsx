@@ -1,25 +1,28 @@
 import { useEffect, useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import appChrome from '../../content/appChrome.json';
-import IconButton from '../IconButton.jsx';
+import { getProfileOverview, PROFILE_UPDATED_EVENT } from '../../services/profileService.js';
 import ProfileAvatar from '../profile/ProfileAvatar.jsx';
 
 const { brand, currentUser, navigationItems } = appChrome;
 
 export default function Sidebar() {
   const navigate = useNavigate();
-  const [theme, setTheme] = useState(() =>
-    document.documentElement.dataset.theme === 'dark' ? 'dark' : 'light',
-  );
+  const [profile, setProfile] = useState(currentUser);
 
   useEffect(() => {
-    document.documentElement.dataset.theme = theme;
-    window.localStorage.setItem('habitus-theme', theme);
-  }, [theme]);
+    getProfileOverview().then((overview) => setProfile(overview.profile));
 
-  function toggleTheme() {
-    setTheme((currentTheme) => (currentTheme === 'dark' ? 'light' : 'dark'));
-  }
+    function handleProfileUpdated(event) {
+      setProfile(event.detail);
+    }
+
+    window.addEventListener(PROFILE_UPDATED_EVENT, handleProfileUpdated);
+
+    return () => {
+      window.removeEventListener(PROFILE_UPDATED_EVENT, handleProfileUpdated);
+    };
+  }, []);
 
   return (
     <aside className="sidebar">
@@ -41,24 +44,15 @@ export default function Sidebar() {
           </NavLink>
         ))}
       </nav>
-      <div className="sidebar-user">
-        <ProfileAvatar imageUrl={currentUser.imageUrl} name={currentUser.name} />
-        <div className="sidebar-user-details">
-          <p>{currentUser.name}</p>
-          <div className="sidebar-user-actions" aria-label="Ações do usuário">
-            <IconButton
-              icon={theme === 'dark' ? 'light_mode' : 'dark_mode'}
-              label={theme === 'dark' ? 'Ativar tema claro' : 'Ativar tema escuro'}
-              onClick={toggleTheme}
-            />
-            <IconButton
-              icon="settings"
-              label="Abrir configurações"
-              onClick={() => navigate('/configuracoes')}
-            />
-            <IconButton icon="account_circle" label="Abrir perfil" onClick={() => navigate('/perfil')} />
+      <div className="sidebar-footer">
+        <button className="sidebar-user" type="button" onClick={() => navigate('/perfil')}>
+          <ProfileAvatar imageUrl={profile.imageUrl} name={profile.nickname} />
+          <div className="sidebar-user-details">
+            <p>{profile.nickname}</p>
+            <span>{profile.email}</span>
           </div>
-        </div>
+        </button>
+        <p className="sidebar-version">v0.1.0</p>
       </div>
     </aside>
   );

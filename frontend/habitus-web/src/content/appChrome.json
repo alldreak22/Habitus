@@ -10,6 +10,9 @@
   ],
   "currentUser": {
     "name": "André Roedel",
+    "nickname": "André Roedel",
+    "email": "andre@habitus.com",
+    "memberSince": "Janeiro, 2024",
     "imageUrl": null
   }
 }

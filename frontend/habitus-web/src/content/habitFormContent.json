@@ -43,6 +43,7 @@
     "frequency": "daily",
     "icon": "fitness_center",
     "name": "",
+    "reminderEnabled": true,
     "selectedDays": ["mon", "tue", "wed", "thu", "fri"],
     "suggestedTimes": ["08:00"],
     "timesPerDay": 1

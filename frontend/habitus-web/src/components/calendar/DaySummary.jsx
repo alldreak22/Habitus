@@ -1,7 +1,7 @@
 import { formatFullDate } from '../../utils/date.js';
 import Button from '../Button.jsx';
 
-export default function DaySummary({ date, habits, onToggleHabit }) {
+export default function DaySummary({ date, habits, onToggleHabit, onViewDetails }) {
   return (
     <section className="summary-card">
       <div className="summary-heading">
@@ -17,7 +17,7 @@ export default function DaySummary({ date, habits, onToggleHabit }) {
           <p className="empty-state">Nenhum hábito planejado para este dia.</p>
         )}
       </div>
-      <Button className="summary-details-button" fullWidth variant="outline">
+      <Button className="summary-details-button" fullWidth variant="outline" onClick={onViewDetails}>
         Ver detalhes do dia
       </Button>
     </section>

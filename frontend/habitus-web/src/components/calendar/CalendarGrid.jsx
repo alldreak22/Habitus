@@ -2,6 +2,7 @@ import calendarLabels from '../../content/calendarLabels.json';
 import { buildCalendarDays, formatDateKey, isSameDay } from '../../utils/date.js';
 import Button from '../Button.jsx';
 import IconButton from '../IconButton.jsx';
+import SelectDropdown from '../SelectDropdown.jsx';
 
 const { months, weekDays, yearRange } = calendarLabels;
 
@@ -11,6 +12,7 @@ export default function CalendarGrid({
   onMonthYearChange,
   onNextMonth,
   onPreviousMonth,
+  onDayDoubleClick,
   onSelectDate,
   selectedDate,
   today,
@@ -22,12 +24,12 @@ export default function CalendarGrid({
     (_, index) => yearRange.start + index,
   );
 
-  function handleMonthChange(event) {
-    onMonthYearChange(new Date(visibleMonth.getFullYear(), Number(event.target.value), 1));
+  function handleMonthChange(month) {
+    onMonthYearChange(new Date(visibleMonth.getFullYear(), Number(month), 1));
   }
 
-  function handleYearChange(event) {
-    onMonthYearChange(new Date(Number(event.target.value), visibleMonth.getMonth(), 1));
+  function handleYearChange(year) {
+    onMonthYearChange(new Date(Number(year), visibleMonth.getMonth(), 1));
   }
 
   return (
@@ -37,23 +39,21 @@ export default function CalendarGrid({
           <div className="calendar-selectors">
             <label>
               <span>Mês</span>
-              <select value={visibleMonth.getMonth()} onChange={handleMonthChange}>
-                {months.map((month, index) => (
-                  <option key={month} value={index}>
-                    {month}
-                  </option>
-                ))}
-              </select>
+              <SelectDropdown
+                label="Mês"
+                options={months.map((month, index) => ({ label: month, value: index }))}
+                value={visibleMonth.getMonth()}
+                onChange={handleMonthChange}
+              />
             </label>
             <label>
               <span>Ano</span>
-              <select value={visibleMonth.getFullYear()} onChange={handleYearChange}>
-                {yearOptions.map((year) => (
-                  <option key={year} value={year}>
-                    {year}
-                  </option>
-                ))}
-              </select>
+              <SelectDropdown
+                label="Ano"
+                options={yearOptions.map((year) => ({ label: year, value: year }))}
+                value={visibleMonth.getFullYear()}
+                onChange={handleYearChange}
+              />
             </label>
           </div>
           <div className="icon-button-group">
@@ -92,6 +92,7 @@ export default function CalendarGrid({
                 key={dateKey}
                 className={className}
                 type="button"
+                onDoubleClick={() => onDayDoubleClick?.(day.date)}
                 onClick={() => onSelectDate(day.date)}
                 aria-pressed={isSelected}
                 aria-label={`Selecionar dia ${day.date.toLocaleDateString('pt-BR')}`}

@@ -1,0 +1,28 @@
+{
+  "profile": {
+    "name": "André Roedel",
+    "nickname": "André Roedel",
+    "email": "andre@habitus.com",
+    "memberSince": "Janeiro, 2024",
+    "imageUrl": null
+  },
+  "security": {
+    "passwordLastChanged": "Alterada pela última vez há 3 meses"
+  },
+  "summary": {
+    "streakDays": 14,
+    "completionPercentage": 85,
+    "completedGoals": 128,
+    "totalGoals": 150,
+    "goalsPeriod": "este mês",
+    "achievement": {
+      "title": "Mestre da Rotina",
+      "description": "Nível 4 atingido"
+    }
+  },
+  "focusPrompt": {
+    "title": "Produtividade Serena",
+    "description": "Pronto para sua próxima sessão de foco profundo?",
+    "actionLabel": "Iniciar timer"
+  }
+}

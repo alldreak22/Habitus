@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Button from '../Button.jsx';
 
 export default function TopBar({
@@ -11,6 +12,7 @@ export default function TopBar({
   searchValue,
   title,
 }) {
+  const navigate = useNavigate();
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const hasSearch = typeof onSearchChange === 'function';
   const hasNotifications = notifications.length > 0;
@@ -34,6 +36,16 @@ export default function TopBar({
           </label>
         ) : null}
         <div className="topbar-actions">
+          <button
+            className="notification-button"
+            type="button"
+            aria-label="Abrir configurações"
+            onClick={() => navigate('/configuracoes')}
+          >
+            <span className="material-symbols-outlined" aria-hidden="true">
+              settings
+            </span>
+          </button>
           <div className="notification-anchor">
             <button
               className="notification-button"
