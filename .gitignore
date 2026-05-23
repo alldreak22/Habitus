@@ -27,3 +27,11 @@ frontend/**/.vite/
 *.log
 .DS_Store
 Thumbs.db
+
+# Obsidian local workspace/cache
+vault/.obsidian/workspace.json
+vault/.obsidian/workspace-mobile.json
+vault/.obsidian/cache/
+vault/.obsidian/plugins/
+vault/.obsidian/themes/
+vault/.trash/
