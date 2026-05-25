@@ -3,25 +3,30 @@ import Button from '../components/Button.jsx';
 import IconButton from '../components/IconButton.jsx';
 import TopBar from '../components/layout/TopBar.jsx';
 import ProfileAvatar from '../components/profile/ProfileAvatar.jsx';
-import appChrome from '../content/appChrome.json';
+import { useToast } from '../context/ToastContext.jsx';
 import { getProfileOverview, saveProfile } from '../services/profileService.js';
 
-const { currentUser } = appChrome;
+const emptyProfile = { email: '', imageUrl: null, memberSince: '-', name: '', nickname: '' };
 
 export default function ProfilePage() {
+  const { showToast } = useToast();
   const fileInputRef = useRef(null);
   const [profileOverview, setProfileOverview] = useState(null);
-  const [savedProfile, setSavedProfile] = useState(currentUser);
-  const [profileForm, setProfileForm] = useState(currentUser);
+  const [savedProfile, setSavedProfile] = useState(emptyProfile);
+  const [profileForm, setProfileForm] = useState(emptyProfile);
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
 
   useEffect(() => {
-    getProfileOverview().then((overview) => {
-      setProfileOverview(overview);
-      setSavedProfile(overview.profile);
-      setProfileForm(overview.profile);
-    });
-  }, []);
+    getProfileOverview()
+      .then((overview) => {
+        setProfileOverview(overview);
+        setSavedProfile(overview.profile);
+        setProfileForm(overview.profile);
+      })
+      .catch((error) => {
+        showToast({ message: error.message || 'Nao foi possivel carregar o perfil.', type: 'warning' });
+      });
+  }, [showToast]);
 
   const security = profileOverview?.security;
   const summary = profileOverview?.summary;
@@ -43,22 +48,40 @@ export default function ProfilePage() {
       return;
     }
 
-    const nextImageUrl = URL.createObjectURL(file);
-    setProfileForm((currentProfile) => {
-      if (currentProfile.imageUrl?.startsWith('blob:')) {
-        URL.revokeObjectURL(currentProfile.imageUrl);
-      }
-
-      return {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const nextImageUrl = typeof reader.result === 'string' ? reader.result : '';
+      setProfileForm((currentProfile) => ({
         ...currentProfile,
         imageUrl: nextImageUrl,
-      };
-    });
+      }));
+    };
+    reader.readAsDataURL(file);
   }
 
   async function handleSaveProfile() {
-    const saved = await saveProfile(profileForm);
-    setSavedProfile(saved);
+    const name = String(profileForm.name ?? '').trim();
+    const email = String(profileForm.email ?? '').trim();
+    const emailRegex = /\S+@\S+\.\S+/;
+
+    if (!name) {
+      showToast({ message: 'Informe o nome completo para salvar o perfil.', type: 'warning' });
+      return;
+    }
+
+    if (!emailRegex.test(email)) {
+      showToast({ message: 'Informe um email valido para salvar o perfil.', type: 'warning' });
+      return;
+    }
+
+    try {
+      const saved = await saveProfile({ ...profileForm, email, name });
+      setSavedProfile(saved);
+      setProfileForm(saved);
+      showToast({ message: 'Perfil salvo com sucesso.', type: 'success' });
+    } catch (error) {
+      showToast({ message: error.message || 'Nao foi possivel salvar o perfil.', type: 'warning' });
+    }
   }
 
   return (
@@ -195,6 +218,7 @@ function ProfileField({ label, onChange, type = 'text', value }) {
 }
 
 function PasswordModal({ onClose }) {
+  const { showToast } = useToast();
   const [form, setForm] = useState({
     currentPassword: '',
     newPassword: '',
@@ -228,6 +252,18 @@ function PasswordModal({ onClose }) {
 
   function handleSubmit(event) {
     event.preventDefault();
+    if (!form.currentPassword || !form.newPassword || !form.confirmPassword) {
+      showToast({ message: 'Preencha todos os campos de senha.', type: 'warning' });
+      return;
+    }
+    if (form.newPassword.length < 8 || form.newPassword !== form.confirmPassword) {
+      showToast({
+        message: 'A nova senha precisa ter 8+ caracteres e coincidir com a confirmacao.',
+        type: 'warning',
+      });
+      return;
+    }
+    showToast({ message: 'Senha atualizada com sucesso.', type: 'success' });
     onClose();
   }
 

@@ -4,14 +4,17 @@ import appChrome from '../../content/appChrome.json';
 import { getProfileOverview, PROFILE_UPDATED_EVENT } from '../../services/profileService.js';
 import ProfileAvatar from '../profile/ProfileAvatar.jsx';
 
-const { brand, currentUser, navigationItems } = appChrome;
+const { brand, navigationItems } = appChrome;
+const emptyUser = { email: '', imageUrl: null, nickname: '' };
 
 export default function Sidebar() {
   const navigate = useNavigate();
-  const [profile, setProfile] = useState(currentUser);
+  const [profile, setProfile] = useState(emptyUser);
 
   useEffect(() => {
-    getProfileOverview().then((overview) => setProfile(overview.profile));
+    getProfileOverview()
+      .then((overview) => setProfile(overview.profile))
+      .catch(() => {});
 
     function handleProfileUpdated(event) {
       setProfile(event.detail);
@@ -52,7 +55,6 @@ export default function Sidebar() {
             <span>{profile.email}</span>
           </div>
         </button>
-        <p className="sidebar-version">v0.1.0</p>
       </div>
     </aside>
   );

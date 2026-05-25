@@ -1,16 +1,37 @@
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8080/api';
+const DEV_AUTH_TOKEN = import.meta.env.VITE_DEV_AUTH_TOKEN ?? 'ZmFrZS10b2tlbi0x';
 
 export async function apiRequest(path, options = {}) {
-  const response = await fetch(`${API_BASE_URL}${path}`, {
-    headers: {
-      'Content-Type': 'application/json',
-      ...options.headers,
-    },
-    ...options,
-  });
+  const authToken = DEV_AUTH_TOKEN || window.localStorage.getItem('habitus-auth-token');
+  const baseHeaders = {
+    'Content-Type': 'application/json',
+    ...options.headers,
+  };
+  if (authToken) {
+    baseHeaders.Authorization = `Bearer ${authToken}`;
+  }
+
+  let response;
+  try {
+    response = await fetch(`${API_BASE_URL}${path}`, {
+      ...options,
+      headers: baseHeaders,
+    });
+  } catch (error) {
+    throw new Error('Falha de conexao com a API.');
+  }
 
   if (!response.ok) {
-    throw new Error(`API request failed with status ${response.status}`);
+    let errorMessage = `Erro na API (${response.status}).`;
+    try {
+      const errorBody = await response.json();
+      if (errorBody?.message) {
+        errorMessage = errorBody.message;
+      }
+    } catch (error) {
+      // keep fallback message
+    }
+    throw new Error(errorMessage);
   }
 
   if (response.status === 204) {

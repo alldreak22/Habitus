@@ -1,15 +1,5 @@
-PRAGMA foreign_keys = ON;
-
-CREATE TABLE IF NOT EXISTS users (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    nick TEXT NOT NULL UNIQUE,
-    email TEXT NOT NULL UNIQUE,
-    name TEXT NOT NULL,
-    password TEXT NOT NULL,
-    picture TEXT,
-    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at TEXT
-);
+-- Usuario de teste temporario para desenvolvimento local.
+-- Token mock atual do frontend resolve para user_id = 1.
 
 INSERT OR IGNORE INTO users (
     id,

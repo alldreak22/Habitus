@@ -3,6 +3,7 @@ package com.habitus.api.controller;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -10,6 +11,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.habitus.api.dto.request.LoginRequest;
 import com.habitus.api.dto.request.RegisterRequest;
+import com.habitus.api.dto.request.UpdateUserProfileRequest;
 import com.habitus.api.dto.response.AuthResponse;
 import com.habitus.api.dto.response.UserResponse;
 import com.habitus.api.service.AuthService;
@@ -40,5 +42,10 @@ public class AuthController {
     @GetMapping("/users/me")
     public UserResponse usuarioAtual() {
         return authService.buscarUsuarioAtual(currentUserService.obterUsuarioAtual());
+    }
+
+    @PutMapping("/users/me")
+    public UserResponse atualizarUsuarioAtual(@Valid @RequestBody UpdateUserProfileRequest requisicao) {
+        return authService.atualizarUsuarioAtual(currentUserService.obterUsuarioAtual(), requisicao);
     }
 }

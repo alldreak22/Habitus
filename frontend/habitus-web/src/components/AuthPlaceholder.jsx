@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 
-export default function AuthPlaceholder({ title, description, actionLabel }) {
+export default function AuthPlaceholder({ title, description, actionLabel, onAction }) {
   return (
     <main className="auth-page">
       <section className="auth-panel">
@@ -16,7 +16,9 @@ export default function AuthPlaceholder({ title, description, actionLabel }) {
             Senha
             <input type="password" name="password" autoComplete="current-password" />
           </label>
-          <button type="button">{actionLabel}</button>
+          <button type="button" onClick={onAction}>
+            {actionLabel}
+          </button>
         </form>
         <Link to="/">Voltar para o resumo</Link>
       </section>

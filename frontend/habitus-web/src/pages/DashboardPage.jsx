@@ -1,6 +1,10 @@
 import PagePlaceholder from '../components/PagePlaceholder.jsx';
-import placeholderPages from '../content/placeholderPages.json';
 
 export default function DashboardPage() {
-  return <PagePlaceholder {...placeholderPages.dashboard} />;
+  return (
+    <PagePlaceholder
+      title="Resumo"
+      description="Tela inicial preparada para receber o HTML base do dashboard."
+    />
+  );
 }

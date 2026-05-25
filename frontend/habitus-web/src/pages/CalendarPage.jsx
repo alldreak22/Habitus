@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import CalendarGrid from '../components/calendar/CalendarGrid.jsx';
 import DayEditor from '../components/calendar/DayEditor.jsx';
 import DaySummary from '../components/calendar/DaySummary.jsx';
@@ -12,6 +13,8 @@ import {
 import { formatDateKey, getToday } from '../utils/date.js';
 
 export default function CalendarPage() {
+  const location = useLocation();
+  const navigate = useNavigate();
   const today = useMemo(() => getToday(), []);
   const [visibleMonth, setVisibleMonth] = useState(
     () => new Date(today.getFullYear(), today.getMonth(), 1),
@@ -34,6 +37,20 @@ export default function CalendarPage() {
   useEffect(() => {
     getProductivityInsights().then(setInsights);
   }, []);
+
+  useEffect(() => {
+    if (!location.state?.openDayEditor) {
+      return;
+    }
+
+    const selectedDateFromState = location.state?.selectedDate;
+    const parsedDate = selectedDateFromState ? new Date(`${selectedDateFromState}T00:00:00`) : today;
+    const nextDate = Number.isNaN(parsedDate.getTime()) ? today : parsedDate;
+
+    setVisibleMonth(new Date(nextDate.getFullYear(), nextDate.getMonth(), 1));
+    handleOpenDayEditor(nextDate);
+    navigate(location.pathname, { replace: true, state: null });
+  }, [location.pathname, location.state, navigate, today]);
 
   function handlePreviousMonth() {
     setVisibleMonth((current) => new Date(current.getFullYear(), current.getMonth() - 1, 1));

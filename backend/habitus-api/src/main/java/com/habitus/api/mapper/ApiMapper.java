@@ -48,7 +48,7 @@ public class ApiMapper {
             legacyTargetFrequency(habit.getFrequencyType()),
             Math.max(1, reminderTimes.size()),
             String.join(",", reminderTimes),
-            "ACTIVE".equals(habit.getStatus()),
+            habit.getActive() != null ? habit.getActive() : "ACTIVE".equals(habit.getStatus()),
             habit.getReminder(),
             habit.getFrequencyType(),
             habit.getStatus(),

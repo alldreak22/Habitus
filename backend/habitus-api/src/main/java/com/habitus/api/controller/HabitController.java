@@ -60,7 +60,7 @@ public class HabitController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void excluir(@PathVariable Long id) {
         User user = currentUserService.obterUsuarioAtual();
-        habitService.desativar(user, id);
+        habitService.excluir(user, id);
     }
 
     @GetMapping("/{id}/history")

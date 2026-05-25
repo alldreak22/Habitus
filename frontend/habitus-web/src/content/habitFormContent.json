@@ -7,19 +7,25 @@
     { "icon": "bedtime", "label": "Sono" },
     { "icon": "directions_walk", "label": "Caminhada" },
     { "icon": "restaurant", "label": "Alimentação" },
-    { "icon": "edit_note", "label": "Escrita" }
+    { "icon": "edit_note", "label": "Escrita" },
+    { "icon": "self_care", "label": "Autocuidado" },
+    { "icon": "sports_gymnastics", "label": "Mobilidade" },
+    { "icon": "psychology", "label": "Estudo" },
+    { "icon": "nights_stay", "label": "Descanso" }
   ],
   "colorOptions": [
-    "#00694a",
-    "#5b5f5e",
-    "#944343",
-    "#3e4943",
-    "#2f8f6b",
-    "#34495e",
-    "#7f8c8d",
-    "#16a085",
-    "#2980b9",
-    "#8e44ad"
+    "#E63946",
+    "#F4A261",
+    "#E9C46A",
+    "#2A9D8F",
+    "#1D3557",
+    "#3A86FF",
+    "#8338EC",
+    "#FF006E",
+    "#6D597A",
+    "#588157",
+    "#264653",
+    "#8D99AE"
   ],
   "weekDays": [
     { "key": "sun", "label": "D" },
@@ -45,7 +51,7 @@
     "name": "",
     "reminderEnabled": true,
     "selectedDays": ["mon", "tue", "wed", "thu", "fri"],
-    "suggestedTimes": ["08:00"],
+    "suggestedTimes": [],
     "timesPerDay": 1
   }
 }

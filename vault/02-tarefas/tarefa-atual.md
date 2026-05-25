@@ -1,3 +1,37 @@
 # Tarefa atual
 
-- Substituir mocks de habitos por chamadas reais para `/api/habits`.
+Sem itens pendentes no momento.
+
+## Concluidos
+
+- Remover dados mockados do frontend (calendario, perfil e placeholders), manter cache apenas de token/user/configuracoes, limpar SQL para conter apenas users + insert de usuario de teste, e separar testes JUnit por contexto em classes distintas. (CONCLUIDO)
+- Revisar `tarefa-futura` e remover itens ja entregues, movendo o registro para concluidos. (CONCLUIDO)
+- Persistir edicao de perfil/foto no backend (SQLite) via `PUT /api/users/me`, substituindo salvamento apenas local do frontend. (CONCLUIDO)
+- Atualizar testes da API de habitos para refletir o payload/cenario real do frontend (incluindo cadastro sem horario) usando JUnit 5 + Spring MockMvc. (CONCLUIDO)
+- Ajustes de UX pendentes registrados: tempos/largura do toast (1s sucesso, 2s erro), alinhamento e tamanho dos campos de icone/cor, melhoria do dropdown de icones e adicao de 4 novos icones. (CONCLUIDO)
+- Alterar exclusao de habito para remocao fisica no banco (DELETE real) em vez de inativacao. (CONCLUIDO)
+- Adicionar limite e feedback no frontend para titulo e descricao de habito, alinhando validacao com backend. (CONCLUIDO)
+- Atualizar Toast para ficar menor, levemente transparente e com barra de progresso decrescente por tempo (2s sucesso, 3s erro/aviso). (CONCLUIDO)
+- Ajustar cadastro de horarios para bloquear adicao de novo horario quando houver campo vazio pendente; ampliar paleta de cores para 12 opcoes mais distintas. (CONCLUIDO)
+- Revisar `HabitService.criar` para remover sobrescrita redundante de status e alinhar persistencia da entidade Habit com a tabela SQLite `habits` existente. (CONCLUIDO)
+- Corrigir erro SQLITE_CONSTRAINT_NOTNULL em `habits.active` ao cadastrar habito. (CONCLUIDO)
+- Permitir cadastro de habito sem horario (horario opcional). (CONCLUIDO)
+- Buscar dados de usuário na api e montar a tela de Perfil de acordo com as informações recebidas. Atualizar tambem a previsualização do perfil do menu lateral. (CONCLUIDO)
+- Remover do cadastro de habito o horairo mockado de 08:00 hrs, mantendo sempre vazio qndo cadastrar um novo. (CONCLUIDO)
+- Tirar o botao de novo habito quando nao tiver nenhum. (CONCLUIDO)
+- Tirar cards de ativos/inativos e conclusao semanal da tela de listagem de habitos. (CONCLUIDO)
+- Remover totalmente espaco de versao alocado no menu lateral. (CONCLUIDO)
+- Na tela de configuracoes, na parte de informacoes, manter apenas "Aplicacao" e remover "Versao". (CONCLUIDO)
+- Na tela de configuracoes, os dados fora da secao de informacoes devem vir do cache, com padrao "Sistema", "pt-BR", e ambos toggles desmarcados. (CONCLUIDO)
+- Substituir mocks de habitos por chamadas reais para `/api/habits`. (CONCLUIDO)
+- Mover texto de versao para tela de configuracoes ao lado de tudo em um bloco de informacoes novo. (CONCLUIDO)
+- Criar componente padrao quando nao achar nenhum habito. (CONCLUIDO)
+- Bugs: Nao esta criando novo habito. (CONCLUIDO)
+- Bugs: Quando clica em salvar um novo habito os botoes piscam mas nao fazem nada. (CONCLUIDO)
+- Bugs: Resumo do dia no cadastro de habito nao esta direcionando para edicao de dia, da mesma forma que o calendario manda. (CONCLUIDO)
+- Bugs: Erro de request entre frontend e API por CORS/token. (CONCLUIDO)
+- Bugs: Token bearer ausente nas telas com requisicao. (CONCLUIDO)
+- Bugs: Mock de login para gerar token no frontend sem fluxo real. (CONCLUIDO)
+- Bugs: Erro de DDL no SQLite ao adicionar nick com UNIQUE. (CONCLUIDO)
+- Bugs: Ajuste do schema users para remover password_hash e manter password. (CONCLUIDO)
+- Bugs: Versao exibida fixa no frontend em vez de vir da API. (CONCLUIDO)

@@ -23,17 +23,17 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column
+    private String nick;
+
     @Column(nullable = false, unique = true)
     private String email;
 
-    @Column(name = "password_hash", nullable = false)
-    private String passwordHash;
-
-    @Column(nullable = false, unique = true)
-    private String nick;
-
     @Column(nullable = false)
     private String name;
+
+    @Column(nullable = false)
+    private String password;
 
     private String picture;
 

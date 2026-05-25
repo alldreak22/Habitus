@@ -1,6 +1,10 @@
 import PagePlaceholder from '../components/PagePlaceholder.jsx';
-import placeholderPages from '../content/placeholderPages.json';
 
 export default function EvolutionPage() {
-  return <PagePlaceholder {...placeholderPages.evolution} />;
+  return (
+    <PagePlaceholder
+      title="Evolução"
+      description="Área preparada para estatísticas, gráficos e tendências dos seus hábitos."
+    />
+  );
 }

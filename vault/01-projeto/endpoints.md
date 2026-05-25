@@ -5,6 +5,7 @@
 - `POST /api/auth/register`: cadastra um usuario e retorna os dados de autenticacao.
 - `POST /api/auth/login`: autentica um usuario e retorna os dados de autenticacao.
 - `GET /api/users/me`: retorna os dados do usuario autenticado.
+- `PUT /api/users/me`: atualiza os dados do usuario autenticado, incluindo `picture`.
 
 ## Versao
 
@@ -16,7 +17,7 @@
 - `GET /api/habits`: lista os habitos do usuario autenticado.
 - `GET /api/habits/{id}`: retorna um habito do usuario autenticado pelo id.
 - `PUT /api/habits/{id}`: atualiza um habito do usuario autenticado pelo id.
-- `DELETE /api/habits/{id}`: desativa um habito do usuario autenticado pelo id.
+- `DELETE /api/habits/{id}`: exclui um habito do usuario autenticado pelo id.
 - `GET /api/habits/{id}/history`: lista o historico de conclusoes de um habito do usuario autenticado.
 
 ## Entradas diarias

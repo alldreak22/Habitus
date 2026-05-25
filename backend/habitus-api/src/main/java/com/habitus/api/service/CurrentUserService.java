@@ -22,12 +22,12 @@ public class CurrentUserService {
         HttpServletRequest request = requisicaoAtual();
         String autorizacao = request.getHeader("Authorization");
         if (autorizacao == null || !autorizacao.startsWith("Bearer ")) {
-            throw new UnauthorizedException("Token bearer ausente");
+            throw new UnauthorizedException("Token ausente");
         }
 
         Long userId = tokenService.lerIdUsuario(autorizacao.substring("Bearer ".length()));
         return userRepository.findById(userId)
-            .orElseThrow(() -> new UnauthorizedException("Usuário não encontrado para o token"));
+            .orElseThrow(() -> new UnauthorizedException("Usuário não encontrado"));
     }
 
     private HttpServletRequest requisicaoAtual() {

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import SelectDropdown from '../components/SelectDropdown.jsx';
 import TopBar from '../components/layout/TopBar.jsx';
+import { apiRequest } from '../services/api.js';
 import SegmentedSettingControl from '../components/settings/SegmentedSettingControl.jsx';
 import SettingRow from '../components/settings/SettingRow.jsx';
 import SettingsSection from '../components/settings/SettingsSection.jsx';
@@ -26,11 +27,12 @@ function resolveTheme(themePreference) {
 }
 
 export default function SettingsPage() {
+  const [appInfo, setAppInfo] = useState({ displayName: '-' });
   const [settings, setSettings] = useState(() => ({
-    dailyBrowserReminders: true,
+    dailyBrowserReminders: window.localStorage.getItem('habitus-daily-browser-reminders') === 'true',
     language: window.localStorage.getItem('habitus-language') ?? 'pt-BR',
-    theme: window.localStorage.getItem('habitus-theme') ?? 'light',
-    weeklyEmailReports: true,
+    theme: window.localStorage.getItem('habitus-theme') ?? 'system',
+    weeklyEmailReports: window.localStorage.getItem('habitus-weekly-email-reports') === 'true',
   }));
 
   useEffect(() => {
@@ -41,6 +43,24 @@ export default function SettingsPage() {
   useEffect(() => {
     window.localStorage.setItem('habitus-language', settings.language);
   }, [settings.language]);
+
+  useEffect(() => {
+    window.localStorage.setItem('habitus-daily-browser-reminders', String(settings.dailyBrowserReminders));
+  }, [settings.dailyBrowserReminders]);
+
+  useEffect(() => {
+    window.localStorage.setItem('habitus-weekly-email-reports', String(settings.weeklyEmailReports));
+  }, [settings.weeklyEmailReports]);
+
+  useEffect(() => {
+    apiRequest('/version')
+      .then((data) =>
+        setAppInfo({
+          displayName: data?.displayName ?? '-',
+        }),
+      )
+      .catch(() => setAppInfo({ displayName: '-' }));
+  }, []);
 
   function updateSetting(field, value) {
     setSettings((currentSettings) => ({
@@ -103,6 +123,12 @@ export default function SettingsPage() {
                   label="Ativar relatórios semanais por email"
                   onChange={(value) => updateSetting('weeklyEmailReports', value)}
                 />
+              </SettingRow>
+            </SettingsSection>
+
+            <SettingsSection icon="info" title="Informações">
+              <SettingRow title="Aplicação" description="Nome atual vindo da API">
+                <span>{appInfo.displayName}</span>
               </SettingRow>
             </SettingsSection>
           </div>

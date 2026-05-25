@@ -4,13 +4,15 @@ import Button from '../components/Button.jsx';
 import IconButton from '../components/IconButton.jsx';
 import TipCard from '../components/TipCard.jsx';
 import DaySummary from '../components/calendar/DaySummary.jsx';
+import HabitsEmptyState from '../components/habits/HabitsEmptyState.jsx';
 import HabitChoiceDropdown from '../components/habits/HabitChoiceDropdown.jsx';
 import TopBar from '../components/layout/TopBar.jsx';
 import SegmentedSettingControl from '../components/settings/SegmentedSettingControl.jsx';
 import ToggleSwitch from '../components/settings/ToggleSwitch.jsx';
 import habitFormContent from '../content/habitFormContent.json';
+import { useToast } from '../context/ToastContext.jsx';
 import { getDaySummary } from '../services/calendarService.js';
-import { getHabits, getWeeklyHabitProgress } from '../services/habitService.js';
+import { createHabit, deleteHabit, getHabits, updateHabit } from '../services/habitService.js';
 import { formatDateKey, getToday } from '../utils/date.js';
 
 const { colorOptions, iconOptions, initialForm, productivityTips, weekDays } = habitFormContent;
@@ -24,24 +26,51 @@ const statusOptions = [
   { label: 'Ativo', value: 'active' },
   { label: 'Inativo', value: 'inactive' },
 ];
+const HABIT_TITLE_MAX_LENGTH = 255;
+const HABIT_DESCRIPTION_MAX_LENGTH = 1000;
 
 export default function HabitsPage() {
   const location = useLocation();
   const navigate = useNavigate();
+  const { showToast } = useToast();
   const today = useMemo(() => getToday(), []);
   const [editingHabit, setEditingHabit] = useState(null);
   const [habitPendingDeletion, setHabitPendingDeletion] = useState(null);
   const [habits, setHabits] = useState([]);
+  const [isLoadingHabits, setIsLoadingHabits] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [todaySummary, setTodaySummary] = useState([]);
-  const [weeklyProgress, setWeeklyProgress] = useState(null);
 
   useEffect(() => {
-    getHabits().then(setHabits);
-    getWeeklyHabitProgress().then(setWeeklyProgress);
+    let isMounted = true;
+
+    async function loadHabits() {
+      setIsLoadingHabits(true);
+
+      try {
+        const loadedHabits = await getHabits();
+        if (isMounted) {
+          setHabits(loadedHabits);
+        }
+      } catch (error) {
+        if (isMounted) {
+          showToast({ message: error.message || 'Nao foi possivel carregar os habitos da API.', type: 'warning' });
+        }
+      } finally {
+        if (isMounted) {
+          setIsLoadingHabits(false);
+        }
+      }
+    }
+
+    loadHabits();
     getDaySummary(formatDateKey(today)).then(setTodaySummary);
-  }, [today]);
+
+    return () => {
+      isMounted = false;
+    };
+  }, [showToast, today]);
 
   useEffect(() => {
     if (location.state?.startCreatingHabit) {
@@ -51,7 +80,6 @@ export default function HabitsPage() {
     }
   }, [location.pathname, location.state, navigate]);
 
-  const activeCount = useMemo(() => habits.filter((habit) => habit.active).length, [habits]);
   const filteredHabits = useMemo(() => {
     const normalizedSearch = searchTerm.trim().toLowerCase();
 
@@ -66,17 +94,33 @@ export default function HabitsPage() {
     );
   }, [habits, searchTerm]);
 
-  function handleCreateHabit(newHabit) {
-    setHabits((currentHabits) => {
-      if (editingHabit) {
-        return currentHabits.map((habit) => (habit.id === editingHabit.id ? newHabit : habit));
-      }
+  async function handleCreateHabit(form) {
+    try {
+      const payload = buildHabitPayload(form);
+      const savedHabit = editingHabit
+        ? await updateHabit(editingHabit.id, payload)
+        : await createHabit(payload);
 
-      return [newHabit, ...currentHabits];
-    });
-    setEditingHabit(null);
-    setIsCreating(false);
-    setSearchTerm('');
+      setHabits((currentHabits) => {
+        if (editingHabit) {
+          return currentHabits.map((habit) => (habit.id === editingHabit.id ? savedHabit : habit));
+        }
+
+        return [savedHabit, ...currentHabits];
+      });
+      setEditingHabit(null);
+      setIsCreating(false);
+      setSearchTerm('');
+      showToast({
+        message: editingHabit ? 'Habito atualizado com sucesso.' : 'Habito criado com sucesso.',
+        type: 'success',
+      });
+      return null;
+    } catch (error) {
+      const errorMessage = `Nao foi possivel salvar o habito. ${error.message}`;
+      showToast({ message: errorMessage, type: 'warning' });
+      return errorMessage;
+    }
   }
 
   function handleEditHabit(habit) {
@@ -89,26 +133,43 @@ export default function HabitsPage() {
     setIsCreating(false);
   }
 
-  function handleToggleHabitStatus(habitId) {
-    setHabits((currentHabits) =>
-      currentHabits.map((habit) =>
-        habit.id === habitId ? { ...habit, active: !habit.active } : habit,
-      ),
-    );
+  async function handleToggleHabitStatus(habitId) {
+    const habit = habits.find((currentHabit) => currentHabit.id === habitId);
+    if (!habit) {
+      return;
+    }
+
+    try {
+      const updatedHabit = await updateHabit(habitId, buildHabitPayload({ ...habit, active: !habit.active }));
+      setHabits((currentHabits) =>
+        currentHabits.map((currentHabit) =>
+          currentHabit.id === habitId ? updatedHabit : currentHabit,
+        ),
+      );
+      showToast({ message: 'Status do habito atualizado com sucesso.', type: 'success' });
+    } catch (error) {
+      showToast({ message: `Nao foi possivel atualizar o status do habito. ${error.message}`, type: 'warning' });
+    }
   }
 
-  function handleConfirmDeleteHabit() {
+  async function handleConfirmDeleteHabit() {
     if (!habitPendingDeletion) {
       return;
     }
 
-    setHabits((currentHabits) =>
-      currentHabits.filter((habit) => habit.id !== habitPendingDeletion.id),
-    );
-    setTodaySummary((currentSummary) =>
-      currentSummary.filter((habit) => habit.id !== habitPendingDeletion.id),
-    );
-    setHabitPendingDeletion(null);
+    try {
+      await deleteHabit(habitPendingDeletion.id);
+      setHabits((currentHabits) =>
+        currentHabits.filter((habit) => habit.id !== habitPendingDeletion.id),
+      );
+      setTodaySummary((currentSummary) =>
+        currentSummary.filter((habit) => habit.id !== habitPendingDeletion.id),
+      );
+      setHabitPendingDeletion(null);
+      showToast({ message: 'Habito excluido com sucesso.', type: 'success' });
+    } catch (error) {
+      showToast({ message: `Nao foi possivel excluir o habito. ${error.message}`, type: 'warning' });
+    }
   }
 
   function handleToggleTodaySummary(habitId) {
@@ -133,6 +194,7 @@ export default function HabitsPage() {
             <HabitForm
               habit={editingHabit}
               onCancel={handleCancelForm}
+              onValidationError={(message) => showToast({ message, type: 'warning' })}
               onSubmit={handleCreateHabit}
             />
           ) : (
@@ -143,26 +205,17 @@ export default function HabitsPage() {
                     <h1 id="habits-heading">Hábitos cadastrados</h1>
                     <p>Mantenha sua rotina visível, simples de revisar e fácil de ajustar.</p>
                   </div>
-                  <Button icon="add" onClick={() => setIsCreating(true)}>
-                    Novo hábito
-                  </Button>
+                  {habits.length ? (
+                    <Button icon="add" onClick={() => setIsCreating(true)}>
+                      Novo hábito
+                    </Button>
+                  ) : null}
                 </header>
 
                 <div className="habits-scroll-region">
-                  <div className="habit-metrics" aria-label="Resumo dos hábitos">
-                    <article>
-                      <span>{habits.length}</span>
-                      <p>Cadastrados</p>
-                    </article>
-                    <article>
-                      <span>{activeCount}</span>
-                      <p>Ativos</p>
-                    </article>
-                    <article>
-                      <span>{weeklyProgress?.completedPercentage ?? 0}%</span>
-                      <p>Conclusão semanal</p>
-                    </article>
-                  </div>
+                  {isLoadingHabits ? (
+                    <p className="empty-state habits-empty-state">Carregando habitos da API...</p>
+                  ) : null}
 
                   <div className="habits-grid">
                     {filteredHabits.map((habit) => (
@@ -175,17 +228,20 @@ export default function HabitsPage() {
                       />
                     ))}
                   </div>
-                  {!filteredHabits.length && (
-                    <p className="empty-state habits-empty-state">
-                      Nenhum hábito encontrado para o filtro informado.
-                    </p>
-                  )}
+                  {!isLoadingHabits && !filteredHabits.length ? (
+                    <HabitsEmptyState onCreate={() => setIsCreating(true)} />
+                  ) : null}
                 </div>
               </section>
 
               <HabitsSidePanel
                 date={today}
                 onToggleHabit={handleToggleTodaySummary}
+                onViewDetails={() =>
+                  navigate('/calendario', {
+                    state: { openDayEditor: true, selectedDate: formatDateKey(today) },
+                  })
+                }
                 summary={todaySummary}
               />
             </div>
@@ -194,7 +250,7 @@ export default function HabitsPage() {
       </main>
       {habitPendingDeletion ? (
         <ConfirmDialog
-          message={`Tem certeza que deseja excluir "${habitPendingDeletion.name}"? Essa ação remove o hábito da listagem.`}
+          message={`Tem certeza que deseja excluir "${habitPendingDeletion.name}"? Essa ação remove o hábito da listagem e do banco.`}
           onCancel={() => setHabitPendingDeletion(null)}
           onConfirm={handleConfirmDeleteHabit}
           title="Excluir hábito"
@@ -204,8 +260,9 @@ export default function HabitsPage() {
   );
 }
 
-function HabitForm({ habit, onCancel, onSubmit }) {
+function HabitForm({ habit, onCancel, onSubmit, onValidationError }) {
   const [form, setForm] = useState(() => buildFormState(habit));
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const isCustomFrequency = form.frequency === 'custom';
   const selectedIcon = iconOptions.find((option) => option.icon === form.icon) ?? iconOptions[0];
 
@@ -223,19 +280,21 @@ function HabitForm({ habit, onCancel, onSubmit }) {
   }
 
   function addSuggestedTime() {
+    if (form.suggestedTimes.some((time) => !String(time ?? '').trim())) {
+      onValidationError?.('Preencha ou remova o horario vazio antes de adicionar outro.');
+      return;
+    }
+
     setForm((currentForm) => ({
       ...currentForm,
-      suggestedTimes: [...currentForm.suggestedTimes, '08:00'],
+      suggestedTimes: [...currentForm.suggestedTimes, ''],
     }));
   }
 
   function removeSuggestedTime(index) {
     setForm((currentForm) => ({
       ...currentForm,
-      suggestedTimes:
-        currentForm.suggestedTimes.length > 1
-          ? currentForm.suggestedTimes.filter((_, timeIndex) => timeIndex !== index)
-          : [''],
+      suggestedTimes: currentForm.suggestedTimes.filter((_, timeIndex) => timeIndex !== index),
     }));
   }
 
@@ -249,28 +308,48 @@ function HabitForm({ habit, onCancel, onSubmit }) {
     });
   }
 
-  function handleSubmit(event) {
+  async function handleSubmit(event) {
     event.preventDefault();
 
     const name = form.name.trim();
+    const description = form.description.trim();
+
     if (!name) {
+      onValidationError?.('Informe um titulo para o habito.');
+      return;
+    }
+    if (name.length > HABIT_TITLE_MAX_LENGTH) {
+      onValidationError?.(`Titulo deve ter no maximo ${HABIT_TITLE_MAX_LENGTH} caracteres.`);
+      return;
+    }
+    if (description.length > HABIT_DESCRIPTION_MAX_LENGTH) {
+      onValidationError?.(`Descricao deve ter no maximo ${HABIT_DESCRIPTION_MAX_LENGTH} caracteres.`);
       return;
     }
 
-    onSubmit({
-      active: form.active,
-      color: form.color,
-      description: form.description.trim(),
-      icon: form.icon,
-      id: habit?.id ?? `${Date.now()}`,
-      name,
-      reminderEnabled: form.reminderEnabled,
-      suggestedTimes: form.suggestedTimes.filter(Boolean).join(', '),
-      targetFrequency: buildFrequencyLabel(form),
-      timesPerDay: form.timesPerDay,
-    });
+    if (form.frequency === 'custom' && !form.selectedDays.length) {
+      onValidationError?.('Selecione ao menos um dia para frequencia personalizada.');
+      return;
+    }
 
-    setForm(initialForm);
+    setIsSubmitting(true);
+
+    try {
+      const errorMessage = await onSubmit({
+        ...form,
+        description,
+        suggestedTimes: form.suggestedTimes.filter(Boolean),
+        targetFrequency: buildFrequencyLabel(form),
+        timesPerDay: form.suggestedTimes.filter(Boolean).length || form.timesPerDay,
+        name,
+      });
+      if (errorMessage) {
+        return;
+      }
+      setForm(initialForm);
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   return (
@@ -357,8 +436,12 @@ function HabitForm({ habit, onCancel, onSubmit }) {
                 value={form.name}
                 onChange={(event) => updateForm('name', event.target.value)}
                 placeholder="Ex: Exercício físico"
+                maxLength={HABIT_TITLE_MAX_LENGTH}
                 required
               />
+              <small className="field-counter">
+                {form.name.length}/{HABIT_TITLE_MAX_LENGTH}
+              </small>
             </label>
 
             <label className="form-field description-field">
@@ -368,7 +451,11 @@ function HabitForm({ habit, onCancel, onSubmit }) {
                 value={form.description}
                 onChange={(event) => updateForm('description', event.target.value)}
                 placeholder="Ex: Treino funcional por 30 minutos"
+                maxLength={HABIT_DESCRIPTION_MAX_LENGTH}
               />
+              <small className="field-counter">
+                {form.description.length}/{HABIT_DESCRIPTION_MAX_LENGTH}
+              </small>
             </label>
           </div>
 
@@ -457,8 +544,8 @@ function HabitForm({ habit, onCancel, onSubmit }) {
             <button className="secondary-action" type="button" onClick={onCancel}>
               Cancelar
             </button>
-            <button className="primary-action" type="submit">
-              {habit ? 'Salvar alterações' : 'Salvar Hábito'}
+            <button className="primary-action" type="submit" disabled={isSubmitting}>
+              {isSubmitting ? 'Salvando...' : habit ? 'Salvar alterações' : 'Salvar Hábito'}
             </button>
           </footer>
         </form>
@@ -483,6 +570,107 @@ function buildFrequencyLabel(form) {
   return `${form.selectedDays.length || 0} dias personalizados`;
 }
 
+function buildHabitPayload(habit) {
+  const reminderTimes = Array.isArray(habit.suggestedTimes)
+    ? habit.suggestedTimes.filter(Boolean)
+    : String(habit.suggestedTimes ?? '')
+        .split(',')
+        .map((time) => time.trim())
+        .filter(Boolean);
+  const frequencyType = mapFrequencyToApi(habit.frequency ?? habit.frequencyType ?? habit.targetFrequency);
+  const frequencyDays = frequencyType === 'CUSTOM'
+    ? (habit.selectedDays ?? []).map(mapDayToApi).filter(Boolean)
+    : [];
+
+  return {
+    name: habit.name,
+    title: habit.name,
+    icon: habit.icon,
+    color: habit.color,
+    description: habit.description,
+    targetFrequency: frequencyType,
+    timesPerDay: reminderTimes.length || habit.timesPerDay || 1,
+    suggestedTimes: reminderTimes.join(','),
+    reminder: Boolean(habit.reminderEnabled ?? habit.reminder),
+    frequencyType,
+    status: habit.active ? 'ACTIVE' : 'INACTIVE',
+    reminderTimes,
+    frequencyDays,
+  };
+}
+
+function mapFrequencyToApi(frequency) {
+  if (frequency === 'daily' || frequency === 'Todos os dias' || frequency === 'DAILY') {
+    return 'EVERY_DAY';
+  }
+
+  if (frequency === 'weekdays' || frequency === 'Segunda a sexta') {
+    return 'WEEKDAYS';
+  }
+
+  if (frequency === 'weekends' || frequency === 'Finais de semana') {
+    return 'WEEKENDS';
+  }
+
+  return 'CUSTOM';
+}
+
+function mapDayToApi(day) {
+  return {
+    mon: 1,
+    tue: 2,
+    wed: 3,
+    thu: 4,
+    fri: 5,
+    sat: 6,
+    sun: 7,
+  }[day];
+}
+
+function mapFrequencyToForm(habit) {
+  const normalizedFrequencyType = String(habit.frequencyType ?? '').trim().toUpperCase();
+  const normalizedTargetFrequency = String(habit.targetFrequency ?? '').trim().toUpperCase();
+
+  if (normalizedFrequencyType === 'WEEKDAYS' || normalizedTargetFrequency === 'SEGUNDA A SEXTA') {
+    return 'weekdays';
+  }
+
+  if (normalizedFrequencyType === 'WEEKENDS' || normalizedTargetFrequency === 'FINAIS DE SEMANA') {
+    return 'weekends';
+  }
+
+  if (
+    normalizedFrequencyType === 'CUSTOM'
+    || normalizedTargetFrequency === 'CUSTOM'
+    || normalizedTargetFrequency === 'PERSONALIZADO'
+  ) {
+    return 'custom';
+  }
+
+  if (
+    normalizedFrequencyType === 'EVERY_DAY'
+    || normalizedFrequencyType === 'DAILY'
+    || normalizedTargetFrequency === 'DAILY'
+    || normalizedTargetFrequency === 'TODOS OS DIAS'
+  ) {
+    return 'daily';
+  }
+
+  return 'daily';
+}
+
+function mapDayToForm(day) {
+  return {
+    1: 'mon',
+    2: 'tue',
+    3: 'wed',
+    4: 'thu',
+    5: 'fri',
+    6: 'sat',
+    7: 'sun',
+  }[day];
+}
+
 function buildFormState(habit) {
   if (!habit) {
     return initialForm;
@@ -492,12 +680,14 @@ function buildFormState(habit) {
     active: habit.active,
     color: habit.color,
     description: habit.description,
-    frequency: habit.targetFrequency === 'Finais de semana' ? 'weekends' : 'daily',
+    frequency: mapFrequencyToForm(habit),
     icon: habit.icon,
     name: habit.name,
-    reminderEnabled: true,
-    selectedDays: initialForm.selectedDays,
-    suggestedTimes: habit.suggestedTimes ? [habit.suggestedTimes.split(', ')[0]] : [''],
+    reminderEnabled: habit.reminderEnabled ?? habit.reminder ?? true,
+    selectedDays: habit.frequencyDays?.map(mapDayToForm).filter(Boolean) ?? initialForm.selectedDays,
+    suggestedTimes: habit.suggestedTimes
+      ? habit.suggestedTimes.split(',').map((time) => time.trim()).filter(Boolean)
+      : [],
     timesPerDay: habit.timesPerDay,
   };
 }
@@ -581,10 +771,15 @@ function ConfirmDialog({ message, onCancel, onConfirm, title }) {
   );
 }
 
-function HabitsSidePanel({ date, onToggleHabit, summary }) {
+function HabitsSidePanel({ date, onToggleHabit, onViewDetails, summary }) {
   return (
     <aside className="habits-analytics" aria-label="Análises dos hábitos">
-      <DaySummary date={date} habits={summary} onToggleHabit={onToggleHabit} />
+      <DaySummary
+        date={date}
+        habits={summary}
+        onToggleHabit={onToggleHabit}
+        onViewDetails={onViewDetails}
+      />
       <TipCard icon="auto_awesome" items={productivityTips} title="Dica de Produtividade" />
     </aside>
   );

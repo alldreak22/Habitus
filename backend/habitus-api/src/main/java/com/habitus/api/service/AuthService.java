@@ -7,6 +7,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.habitus.api.dto.request.LoginRequest;
 import com.habitus.api.dto.request.RegisterRequest;
+import com.habitus.api.dto.request.UpdateUserProfileRequest;
 import com.habitus.api.dto.response.AuthResponse;
 import com.habitus.api.dto.response.UserResponse;
 import com.habitus.api.entity.User;
@@ -37,7 +38,7 @@ public class AuthService {
         user.setName(requisicao.name().trim());
         user.setEmail(email);
         user.setNick(gerarNickUnico(email));
-        user.setPasswordHash(passwordEncoder.encode(requisicao.password()));
+        user.setPassword(passwordEncoder.encode(requisicao.password()));
         User savedUser = userRepository.save(user);
 
         return respostaAutenticacao(savedUser);
@@ -48,7 +49,7 @@ public class AuthService {
         User user = userRepository.findByEmailIgnoreCase(normalizarEmail(requisicao.email()))
             .orElseThrow(() -> new UnauthorizedException("E-mail ou senha inv\u00e1lidos"));
 
-        if (!passwordEncoder.matches(requisicao.password(), user.getPasswordHash())) {
+        if (!passwordEncoder.matches(requisicao.password(), user.getPassword())) {
             throw new UnauthorizedException("E-mail ou senha inv\u00e1lidos");
         }
 
@@ -58,6 +59,26 @@ public class AuthService {
     @Transactional(readOnly = true)
     public UserResponse buscarUsuarioAtual(User user) {
         return mapper.toUserResponse(user);
+    }
+
+    @Transactional
+    public UserResponse atualizarUsuarioAtual(User user, UpdateUserProfileRequest requisicao) {
+        String normalizedEmail = normalizarEmail(requisicao.email());
+        userRepository.findByEmailIgnoreCase(normalizedEmail)
+            .filter(existingUser -> !existingUser.getId().equals(user.getId()))
+            .ifPresent((existingUser) -> {
+                throw new ApiException(HttpStatus.CONFLICT, "E-mail j\u00e1 cadastrado");
+            });
+
+        user.setName(requisicao.name().trim());
+        user.setEmail(normalizedEmail);
+        if (requisicao.nick() != null && !requisicao.nick().isBlank()) {
+            user.setNick(requisicao.nick().trim());
+        }
+        user.setPicture(requisicao.picture());
+
+        User savedUser = userRepository.save(user);
+        return mapper.toUserResponse(savedUser);
     }
 
     private AuthResponse respostaAutenticacao(User user) {

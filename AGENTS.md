@@ -23,6 +23,8 @@ Execute apenas o que estiver em `tarefa-atual.md`.
 
 Nao invente tarefas extras durante a execucao.
 
+Se o usuario requisitar algo fora do escopo de `tarefa-atual.md`, executar somente com confirmacao explicita do usuario e, ao final, registrar essa entrega em `tarefa-atual.md` como item concluido.
+
 Nao altere arquitetura sem pedido explicito.
 
 Nao crie endpoints novos sem verificar antes o arquivo:
@@ -109,6 +111,8 @@ Scripts sao auxiliares e nao fazem parte do fluxo principal.
 - Nao criar regra de negocio no frontend.
 - Nao usar scripts para resolver fluxo principal da aplicacao.
 - Nao adicionar varias tarefas futuras sem necessidade.
+- Nao assumir que `sqlite3` CLI esta disponivel na maquina.
+- Para executar SQL local no SQLite, usar Python (`python` + modulo `sqlite3`) quando for necessario rodar query/script.
 
 ## Controle de tarefas
 
@@ -131,6 +135,12 @@ Exemplo:
 ```
 
 Se a tarefa tiver subtarefas, marcar apenas as subtarefas realmente concluidas.
+
+Organizacao obrigatoria de `tarefa-atual.md`:
+
+- manter itens ainda nao feitos no topo
+- criar uma secao `## Concluidos` no final
+- mover para essa secao todos os itens ja concluidos
 
 Depois de concluir, adicionar no maximo uma proxima tarefa sugerida em:
 

@@ -37,6 +37,9 @@ public class Habit {
     @Column(nullable = false)
     private String title;
 
+    @Column(nullable = false)
+    private String name;
+
     private String icon;
 
     private String color;
@@ -51,7 +54,18 @@ public class Habit {
     private String frequencyType = "EVERY_DAY";
 
     @Column(nullable = false)
+    private String targetFrequency = "DAILY";
+
+    @Column(nullable = false)
+    private Integer timesPerDay = 1;
+
+    private String suggestedTimes;
+
+    @Column(nullable = false)
     private String status = "ACTIVE";
+
+    @Column(nullable = false)
+    private Boolean active = true;
 
     @OneToMany(mappedBy = "habit", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<HabitReminderTime> reminderTimes = new ArrayList<>();
@@ -75,8 +89,20 @@ public class Habit {
         if (frequencyType == null) {
             frequencyType = "EVERY_DAY";
         }
+        if (targetFrequency == null || targetFrequency.isBlank()) {
+            targetFrequency = "DAILY";
+        }
+        if (timesPerDay == null || timesPerDay < 1) {
+            timesPerDay = 1;
+        }
+        if (name == null || name.isBlank()) {
+            name = title;
+        }
         if (status == null) {
             status = "ACTIVE";
+        }
+        if (active == null) {
+            active = "ACTIVE".equalsIgnoreCase(status);
         }
     }
 

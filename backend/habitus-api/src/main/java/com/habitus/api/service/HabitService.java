@@ -39,7 +39,6 @@ public class HabitService {
         Habit habit = new Habit();
         habit.setUser(user);
         aplicarRequisicao(habit, requisicao);
-        habit.setStatus("ACTIVE");
         return mapper.toHabitResponse(habitRepository.save(habit));
     }
 
@@ -64,10 +63,9 @@ public class HabitService {
     }
 
     @Transactional
-    public void desativar(User user, Long id) {
+    public void excluir(User user, Long id) {
         Habit habit = buscarHabitoDoUsuario(user, id);
-        habit.setStatus("INACTIVE");
-        habitRepository.save(habit);
+        habitRepository.delete(habit);
     }
 
     @Transactional(readOnly = true)
@@ -114,10 +112,17 @@ public class HabitService {
         habit.setDescription(requisicao.description());
         habit.setReminder(Boolean.TRUE.equals(requisicao.reminder()));
         habit.setFrequencyType(frequencyType);
+        habit.setTargetFrequency(toLegacyTargetFrequency(frequencyType));
         habit.setStatus(status);
+        habit.setActive("ACTIVE".equals(status));
+        habit.setName(title);
+        habit.setTimesPerDay(requisicao.timesPerDay());
 
         aplicarHorarios(habit, requisicao.reminderTimes(), requisicao.suggestedTimes());
         aplicarDiasCustomizados(habit, requisicao.frequencyDays());
+        habit.setSuggestedTimes(
+            habit.getReminderTimes().stream().map((time) -> String.valueOf(time.getReminderTime())).reduce((a, b) -> a + "," + b).orElse("")
+        );
     }
 
     private void aplicarHorarios(Habit habit, List<String> reminderTimes, String suggestedTimes) {
@@ -180,6 +185,13 @@ public class HabitService {
             case "WEEKDAY" -> "WEEKDAYS";
             case "WEEKEND" -> "WEEKENDS";
             default -> normalized;
+        };
+    }
+
+    private String toLegacyTargetFrequency(String frequencyType) {
+        return switch (frequencyType) {
+            case "EVERY_DAY" -> "DAILY";
+            default -> frequencyType;
         };
     }
 }
