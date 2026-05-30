@@ -2,8 +2,8 @@
 
 ## Autenticacao
 
-- `POST /api/auth/register`: cadastra um usuario e retorna os dados de autenticacao.
-- `POST /api/auth/login`: autentica um usuario e retorna os dados de autenticacao.
+- `POST /api/auth/register`: cadastra um usuario com `name`, `nick`, `email` e `password`, e retorna os dados de autenticacao.
+- `POST /api/auth/login`: autentica um usuario com `login` (nick ou e-mail) e `password`, e retorna os dados de autenticacao.
 - `GET /api/users/me`: retorna os dados do usuario autenticado.
 - `PUT /api/users/me`: atualiza os dados do usuario autenticado, incluindo `picture`.
 

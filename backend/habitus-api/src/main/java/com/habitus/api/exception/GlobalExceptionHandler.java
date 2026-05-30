@@ -27,7 +27,7 @@ public class GlobalExceptionHandler {
         for (FieldError error : exception.getBindingResult().getFieldErrors()) {
             campos.put(error.getField(), error.getDefaultMessage());
         }
-        return montarResposta(HttpStatus.BAD_REQUEST, "Dados da requisição inválidos", campos);
+        return montarResposta(HttpStatus.BAD_REQUEST, "Dados da requisicao invalidos", campos);
     }
 
     @ExceptionHandler(Exception.class)
@@ -48,9 +48,9 @@ public class GlobalExceptionHandler {
 
     private String traduzirStatus(HttpStatus status) {
         return switch (status) {
-            case BAD_REQUEST -> "Requisição inválida";
-            case UNAUTHORIZED -> "Não autorizado";
-            case NOT_FOUND -> "Não encontrado";
+            case BAD_REQUEST -> "Requisicao invalida";
+            case UNAUTHORIZED -> "Nao autorizado";
+            case NOT_FOUND -> "Nao encontrado";
             case CONFLICT -> "Conflito";
             case INTERNAL_SERVER_ERROR -> "Erro interno do servidor";
             default -> status.getReasonPhrase();

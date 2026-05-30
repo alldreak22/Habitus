@@ -6,6 +6,7 @@ import HabitsPage from '../pages/HabitsPage.jsx';
 import LoginPage from '../pages/LoginPage.jsx';
 import ProfilePage from '../pages/ProfilePage.jsx';
 import RegisterPage from '../pages/RegisterPage.jsx';
+import ResetPasswordPage from '../pages/ResetPasswordPage.jsx';
 import SettingsPage from '../pages/SettingsPage.jsx';
 
 export default function App() {
@@ -13,15 +14,16 @@ export default function App() {
     <Routes>
       <Route path="/login" element={<LoginPage />} />
       <Route path="/cadastro" element={<RegisterPage />} />
+      <Route path="/recuperar-senha" element={<ResetPasswordPage />} />
+      <Route index element={<Navigate to="/login" replace />} />
       <Route element={<AppLayout />}>
-        <Route index element={<Navigate to="/calendario" replace />} />
         <Route path="/calendario" element={<CalendarPage />} />
         <Route path="/habitos" element={<HabitsPage />} />
         <Route path="/evolucao" element={<EvolutionPage />} />
         <Route path="/perfil" element={<ProfilePage />} />
         <Route path="/configuracoes" element={<SettingsPage />} />
       </Route>
-      <Route path="*" element={<Navigate to="/calendario" replace />} />
+      <Route path="*" element={<Navigate to="/login" replace />} />
     </Routes>
   );
 }

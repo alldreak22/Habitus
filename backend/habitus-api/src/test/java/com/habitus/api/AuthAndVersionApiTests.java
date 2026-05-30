@@ -38,6 +38,7 @@ class AuthAndVersionApiTests extends BaseApiIntegrationTest {
                 .content("""
                     {
                       "name": "Andre",
+                      "nick": "andre",
                       "email": "ANDRE@example.com",
                       "password": "123456"
                     }
@@ -45,6 +46,7 @@ class AuthAndVersionApiTests extends BaseApiIntegrationTest {
             .andExpect(status().isCreated())
             .andExpect(jsonPath("$.user.id", notNullValue()))
             .andExpect(jsonPath("$.user.name").value("Andre"))
+            .andExpect(jsonPath("$.user.nick").value("andre"))
             .andExpect(jsonPath("$.user.email").value("andre@example.com"))
             .andExpect(jsonPath("$.token", notNullValue()))
             .andExpect(jsonPath("$.tokenType").value("Bearer"));
@@ -59,13 +61,33 @@ class AuthAndVersionApiTests extends BaseApiIntegrationTest {
                 .content("""
                     {
                       "name": "Outro Andre",
+                      "nick": "outro_andre",
                       "email": "ANDRE@example.com",
                       "password": "123456"
                     }
                     """))
             .andExpect(status().isConflict())
             .andExpect(jsonPath("$.error").value("Conflito"))
-            .andExpect(jsonPath("$.message").value("E-mail já cadastrado"));
+            .andExpect(jsonPath("$.message").value("E-mail ja cadastrado"));
+    }
+
+    @Test
+    void registrarRejeitaNickDuplicadoIgnorandoMaiusculas() throws Exception {
+        registrar("Andre", "andre@example.com", "123456");
+
+        mockMvc.perform(post("/api/auth/register")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("""
+                    {
+                      "name": "Outro Andre",
+                      "nick": "ANDRE",
+                      "email": "outro@example.com",
+                      "password": "123456"
+                    }
+                    """))
+            .andExpect(status().isConflict())
+            .andExpect(jsonPath("$.error").value("Conflito"))
+            .andExpect(jsonPath("$.message").value("Usuario ja cadastrado"));
     }
 
     @Test
@@ -75,15 +97,17 @@ class AuthAndVersionApiTests extends BaseApiIntegrationTest {
                 .content("""
                     {
                       "name": "",
+                      "nick": "",
                       "email": "invalid-email",
                       "password": "123"
                     }
                     """))
             .andExpect(status().isBadRequest())
-            .andExpect(jsonPath("$.error").value("Requisição inválida"))
-            .andExpect(jsonPath("$.message").value("Dados da requisição inválidos"))
-            .andExpect(jsonPath("$.fields.name").value("Nome é obrigatório"))
-            .andExpect(jsonPath("$.fields.email").value("E-mail inválido"))
+            .andExpect(jsonPath("$.error").value("Requisicao invalida"))
+            .andExpect(jsonPath("$.message").value("Dados da requisicao invalidos"))
+            .andExpect(jsonPath("$.fields.name").value("Nome e obrigatorio"))
+            .andExpect(jsonPath("$.fields.nick").value("Usuario e obrigatorio"))
+            .andExpect(jsonPath("$.fields.email").value("E-mail invalido"))
             .andExpect(jsonPath("$.fields.password").value("Senha deve ter pelo menos 6 caracteres"));
     }
 
@@ -95,12 +119,31 @@ class AuthAndVersionApiTests extends BaseApiIntegrationTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("""
                     {
-                      "email": "andre@example.com",
+                      "login": "andre@example.com",
                       "password": "123456"
                     }
                     """))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.user.email").value("andre@example.com"))
+            .andExpect(jsonPath("$.token", notNullValue()))
+            .andExpect(jsonPath("$.tokenType").value("Bearer"));
+    }
+
+    @Test
+    void loginRetornaTokenParaNickValido() throws Exception {
+        registrar("Andre", "andre@example.com", "123456");
+
+        mockMvc.perform(post("/api/auth/login")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("""
+                    {
+                      "login": "andre",
+                      "password": "123456"
+                    }
+                    """))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.user.email").value("andre@example.com"))
+            .andExpect(jsonPath("$.user.nick").value("andre"))
             .andExpect(jsonPath("$.token", notNullValue()))
             .andExpect(jsonPath("$.tokenType").value("Bearer"));
     }
@@ -113,19 +156,19 @@ class AuthAndVersionApiTests extends BaseApiIntegrationTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("""
                     {
-                      "email": "andre@example.com",
+                      "login": "andre@example.com",
                       "password": "wrong-password"
                     }
                     """))
             .andExpect(status().isUnauthorized())
-            .andExpect(jsonPath("$.message").value("E-mail ou senha inválidos"));
+            .andExpect(jsonPath("$.message").value("Login ou senha invalidos"));
     }
 
     @Test
     void rotasProtegidasExigemTokenBearer() throws Exception {
         mockMvc.perform(get("/api/users/me"))
             .andExpect(status().isUnauthorized())
-            .andExpect(jsonPath("$.error").value("Não autorizado"))
+            .andExpect(jsonPath("$.error").value("Nao autorizado"))
             .andExpect(jsonPath("$.message").value("Token ausente"));
     }
 

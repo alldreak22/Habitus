@@ -74,6 +74,7 @@ Content-Type: application/json
 
 {
   "name": "Andre",
+  "nick": "andre",
   "email": "andre@example.com",
   "password": "123456"
 }
@@ -86,7 +87,7 @@ POST /api/auth/login
 Content-Type: application/json
 
 {
-  "email": "andre@example.com",
+  "login": "andre",
   "password": "123456"
 }
 ```

@@ -31,13 +31,17 @@ public class AuthService {
     public AuthResponse registrar(RegisterRequest requisicao) {
         String email = normalizarEmail(requisicao.email());
         if (userRepository.existsByEmailIgnoreCase(email)) {
-            throw new ApiException(HttpStatus.CONFLICT, "E-mail j\u00e1 cadastrado");
+            throw new ApiException(HttpStatus.CONFLICT, "E-mail ja cadastrado");
+        }
+        String nick = requisicao.nick().trim();
+        if (userRepository.existsByNickIgnoreCase(nick)) {
+            throw new ApiException(HttpStatus.CONFLICT, "Usuario ja cadastrado");
         }
 
         User user = new User();
         user.setName(requisicao.name().trim());
         user.setEmail(email);
-        user.setNick(gerarNickUnico(email));
+        user.setNick(nick);
         user.setPassword(passwordEncoder.encode(requisicao.password()));
         User savedUser = userRepository.save(user);
 
@@ -46,11 +50,13 @@ public class AuthService {
 
     @Transactional(readOnly = true)
     public AuthResponse login(LoginRequest requisicao) {
-        User user = userRepository.findByEmailIgnoreCase(normalizarEmail(requisicao.email()))
-            .orElseThrow(() -> new UnauthorizedException("E-mail ou senha inv\u00e1lidos"));
+        String login = requisicao.login().trim();
+        String normalizedLogin = login.toLowerCase();
+        User user = userRepository.findByEmailIgnoreCaseOrNickIgnoreCase(normalizedLogin, login)
+            .orElseThrow(() -> new UnauthorizedException("Login ou senha invalidos"));
 
         if (!passwordEncoder.matches(requisicao.password(), user.getPassword())) {
-            throw new UnauthorizedException("E-mail ou senha inv\u00e1lidos");
+            throw new UnauthorizedException("Login ou senha invalidos");
         }
 
         return respostaAutenticacao(user);
@@ -67,7 +73,7 @@ public class AuthService {
         userRepository.findByEmailIgnoreCase(normalizedEmail)
             .filter(existingUser -> !existingUser.getId().equals(user.getId()))
             .ifPresent((existingUser) -> {
-                throw new ApiException(HttpStatus.CONFLICT, "E-mail j\u00e1 cadastrado");
+                throw new ApiException(HttpStatus.CONFLICT, "E-mail ja cadastrado");
             });
 
         user.setName(requisicao.name().trim());
@@ -87,20 +93,5 @@ public class AuthService {
 
     private String normalizarEmail(String email) {
         return email.trim().toLowerCase();
-    }
-
-    private String gerarNickUnico(String email) {
-        String base = email.substring(0, email.indexOf('@')).replaceAll("[^a-zA-Z0-9._-]", "").toLowerCase();
-        if (base.isBlank()) {
-            base = "user";
-        }
-
-        String candidate = base;
-        int suffix = 1;
-        while (userRepository.existsByNickIgnoreCase(candidate)) {
-            candidate = base + suffix;
-            suffix++;
-        }
-        return candidate;
     }
 }

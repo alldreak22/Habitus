@@ -65,13 +65,13 @@ Responsabilidades:
 Endpoints:
 
 - `POST /auth/register`: cadastra usuario
-- `POST /auth/login`: autentica usuario
+- `POST /auth/login`: autentica usuario com `login` (nick ou e-mail) e `password`
 - `GET /users/me`: busca o usuario autenticado
 
 Fluxo esperado:
 
 ```txt
-email/senha -> login ou cadastro -> token -> Authorization: Bearer <token>
+nick ou email/senha -> login ou cadastro -> token -> Authorization: Bearer <token>
 ```
 
 O backend espera o token no header:

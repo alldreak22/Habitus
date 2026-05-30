@@ -35,11 +35,11 @@ function normalizeHabit(habit) {
     active: habit.active ?? habit.status === 'ACTIVE',
     reminderEnabled: habit.reminder ?? false,
     suggestedTimes: reminderTimes.length ? reminderTimes.join(', ') : habit.suggestedTimes,
-    targetFrequency: formatFrequency(habit.frequencyType ?? habit.targetFrequency),
+    targetFrequency: formatFrequency(habit.frequencyType ?? habit.targetFrequency, habit.frequencyDays),
   };
 }
 
-function formatFrequency(frequencyType) {
+function formatFrequency(frequencyType, frequencyDays = []) {
   if (frequencyType === 'EVERY_DAY' || frequencyType === 'DAILY') {
     return 'Todos os dias';
   }
@@ -53,8 +53,30 @@ function formatFrequency(frequencyType) {
   }
 
   if (frequencyType === 'CUSTOM') {
+    const selectedDays = formatFrequencyDays(frequencyDays);
+    if (selectedDays) {
+      return selectedDays;
+    }
     return 'Personalizado';
   }
 
   return frequencyType;
+}
+
+function formatFrequencyDays(frequencyDays) {
+  const dayLabels = {
+    1: 'Seg',
+    2: 'Ter',
+    3: 'Qua',
+    4: 'Qui',
+    5: 'Sex',
+    6: 'Sáb',
+    7: 'Dom',
+  };
+
+  return [...new Set(frequencyDays)]
+    .sort((firstDay, secondDay) => firstDay - secondDay)
+    .map((day) => dayLabels[day])
+    .filter(Boolean)
+    .join(', ');
 }

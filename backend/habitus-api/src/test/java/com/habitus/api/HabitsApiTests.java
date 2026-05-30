@@ -1,8 +1,11 @@
 package com.habitus.api;
 
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.http.MediaType;
 
+import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
@@ -13,6 +16,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 class HabitsApiTests extends BaseApiIntegrationTest {
+
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
 
     @Test
     void habitosPodemSerCriadosListadosAtualizadosBuscadosEExcluidosComPayloadDoFrontend() throws Exception {
@@ -74,6 +80,49 @@ class HabitsApiTests extends BaseApiIntegrationTest {
             .andExpect(jsonPath("$.targetFrequency").value("DAILY"))
             .andExpect(jsonPath("$.timesPerDay").value(1))
             .andExpect(jsonPath("$.reminderTimes", hasSize(0)));
+    }
+
+    @Test
+    void habitoCustomizadoPersisteDiasFrequenciaEHorariosEmMinutos() throws Exception {
+        UsuarioTeste usuario = registrarUsuarioUnico();
+
+        mockMvc.perform(post("/api/habits")
+                .header("Authorization", usuario.cabecalhoAutorizacao())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("""
+                    {
+                      "name": "Treino personalizado",
+                      "title": "Treino personalizado",
+                      "icon": "fitness_center",
+                      "color": "#E63946",
+                      "description": "Seg, qua e sex",
+                      "targetFrequency": "CUSTOM",
+                      "timesPerDay": 2,
+                      "suggestedTimes": "08:00,18:30",
+                      "reminder": true,
+                      "frequencyType": "CUSTOM",
+                      "status": "ACTIVE",
+                      "reminderTimes": ["08:00", "18:30:45"],
+                      "frequencyDays": [1, 3, 5]
+                    }
+                    """))
+            .andExpect(status().isCreated())
+            .andExpect(jsonPath("$.frequencyType").value("CUSTOM"))
+            .andExpect(jsonPath("$.frequencyDays", contains(1, 3, 5)))
+            .andExpect(jsonPath("$.reminderTimes", contains("08:00", "18:30")))
+            .andExpect(jsonPath("$.suggestedTimes").value("08:00,18:30"));
+
+        Integer frequencyDayCount = jdbcTemplate.queryForObject(
+            "select count(*) from habit_frequency_days",
+            Integer.class
+        );
+        String firstReminderTime = jdbcTemplate.queryForObject(
+            "select reminder_time from habit_reminder_times order by reminder_time limit 1",
+            String.class
+        );
+
+        org.junit.jupiter.api.Assertions.assertEquals(3, frequencyDayCount);
+        org.junit.jupiter.api.Assertions.assertEquals("08:00", firstReminderTime);
     }
 
     @Test

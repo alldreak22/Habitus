@@ -1,8 +1,8 @@
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8080/api';
-const DEV_AUTH_TOKEN = import.meta.env.VITE_DEV_AUTH_TOKEN ?? 'ZmFrZS10b2tlbi0x';
+const DEV_AUTH_TOKEN = import.meta.env.VITE_DEV_AUTH_TOKEN ?? '';
 
 export async function apiRequest(path, options = {}) {
-  const authToken = DEV_AUTH_TOKEN || window.localStorage.getItem('habitus-auth-token');
+  const authToken = window.localStorage.getItem('habitus-auth-token') || DEV_AUTH_TOKEN;
   const baseHeaders = {
     'Content-Type': 'application/json',
     ...options.headers,

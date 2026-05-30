@@ -104,7 +104,7 @@ A autenticacao atual e local e simples.
 Fluxo:
 
 ```txt
-email/senha -> API -> token bearer -> chamadas protegidas
+nick ou email/senha -> API -> token bearer -> chamadas protegidas
 ```
 
 Caracteristicas:

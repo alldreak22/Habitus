@@ -579,7 +579,7 @@ function buildHabitPayload(habit) {
         .filter(Boolean);
   const frequencyType = mapFrequencyToApi(habit.frequency ?? habit.frequencyType ?? habit.targetFrequency);
   const frequencyDays = frequencyType === 'CUSTOM'
-    ? (habit.selectedDays ?? []).map(mapDayToApi).filter(Boolean)
+    ? normalizeFrequencyDays(habit.selectedDays ?? habit.frequencyDays ?? [])
     : [];
 
   return {
@@ -616,6 +616,10 @@ function mapFrequencyToApi(frequency) {
 }
 
 function mapDayToApi(day) {
+  if (Number.isInteger(day) && day >= 1 && day <= 7) {
+    return day;
+  }
+
   return {
     mon: 1,
     tue: 2,
@@ -625,6 +629,12 @@ function mapDayToApi(day) {
     sat: 6,
     sun: 7,
   }[day];
+}
+
+function normalizeFrequencyDays(days) {
+  return [...new Set(days.map(mapDayToApi).filter(Boolean))].sort(
+    (firstDay, secondDay) => firstDay - secondDay,
+  );
 }
 
 function mapFrequencyToForm(habit) {

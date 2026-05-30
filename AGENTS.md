@@ -10,13 +10,13 @@ O objetivo e explicar onde buscar contexto, onde buscar tarefas e como atualizar
 Antes de fazer qualquer alteracao, leia:
 
 - `vault/01-projeto/arquitetura.md`
-- `vault/02-backend/endpoints.md`
-- `vault/04-codex/tarefa-atual.md`
+- `vault/01-projeto/endpoints.md`
+- `vault/02-tarefas/tarefa-atual.md`
 
 A tarefa principal sempre esta em:
 
 ```txt
-vault/04-codex/tarefa-atual.md
+vault/02-tarefas/tarefa-atual.md
 ```
 
 Execute apenas o que estiver em `tarefa-atual.md`.
@@ -30,7 +30,7 @@ Nao altere arquitetura sem pedido explicito.
 Nao crie endpoints novos sem verificar antes o arquivo:
 
 ```txt
-vault/02-backend/endpoints.md
+vault/01-projeto/endpoints.md
 ```
 
 Se um endpoint necessario ja existir, use ele.
@@ -113,13 +113,15 @@ Scripts sao auxiliares e nao fazem parte do fluxo principal.
 - Nao adicionar varias tarefas futuras sem necessidade.
 - Nao assumir que `sqlite3` CLI esta disponivel na maquina.
 - Para executar SQL local no SQLite, usar Python (`python` + modulo `sqlite3`) quando for necessario rodar query/script.
+- Para consultas locais de SQLite, preferir o utilitario somente-leitura `python scripts/python/sqlite_query.py "select ..."` ou `python scripts/python/sqlite_query.py "pragma ..."` para evitar depender do CLI `sqlite3`.
+- O banco SQLite local e descartavel durante o desenvolvimento. Quando uma mudanca pedida exigir alterar estrutura ou formato de dados, nao manter codigo legado apenas para compatibilidade com registros antigos; prefira ajustar o modelo atual e, se necessario, dropar/recriar ou normalizar o banco local de desenvolvimento.
 
 ## Controle de tarefas
 
 Toda execucao deve seguir o arquivo:
 
 ```txt
-vault/04-codex/tarefa-atual.md
+vault/02-tarefas/tarefa-atual.md
 ```
 
 Ao finalizar uma tarefa, marcar a tarefa como concluida adicionando:
@@ -145,7 +147,7 @@ Organizacao obrigatoria de `tarefa-atual.md`:
 Depois de concluir, adicionar no maximo uma proxima tarefa sugerida em:
 
 ```txt
-vault/04-codex/tarefas-futuras.md
+vault/02-tarefas/tarefa-futura.md
 ```
 
 A tarefa futura deve:

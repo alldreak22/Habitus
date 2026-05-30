@@ -5,8 +5,9 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
 public record RegisterRequest(
-    @NotBlank(message = "Nome é obrigatório") String name,
-    @NotBlank(message = "E-mail é obrigatório") @Email(message = "E-mail inválido") String email,
-    @NotBlank(message = "Senha é obrigatória") @Size(min = 6, message = "Senha deve ter pelo menos 6 caracteres") String password
+    @NotBlank(message = "Nome e obrigatorio") String name,
+    @NotBlank(message = "Usuario e obrigatorio") String nick,
+    @NotBlank(message = "E-mail e obrigatorio") @Email(message = "E-mail invalido") String email,
+    @NotBlank(message = "Senha e obrigatoria") @Size(min = 6, message = "Senha deve ter pelo menos 6 caracteres") String password
 ) {
 }

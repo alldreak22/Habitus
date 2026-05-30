@@ -1,6 +1,7 @@
 package com.habitus.api.service;
 
 import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.List;
 
@@ -29,6 +30,7 @@ public class HabitService {
 
     private static final List<String> VALID_FREQUENCY_TYPES = List.of("EVERY_DAY", "WEEKDAYS", "WEEKENDS", "CUSTOM");
     private static final List<String> VALID_STATUSES = List.of("ACTIVE", "INACTIVE", "ARCHIVED");
+    private static final DateTimeFormatter REMINDER_TIME_FORMAT = DateTimeFormatter.ofPattern("HH:mm");
 
     private final HabitRepository habitRepository;
     private final DailyHabitCompletionRepository completionRepository;
@@ -121,7 +123,11 @@ public class HabitService {
         aplicarHorarios(habit, requisicao.reminderTimes(), requisicao.suggestedTimes());
         aplicarDiasCustomizados(habit, requisicao.frequencyDays());
         habit.setSuggestedTimes(
-            habit.getReminderTimes().stream().map((time) -> String.valueOf(time.getReminderTime())).reduce((a, b) -> a + "," + b).orElse("")
+            habit.getReminderTimes()
+                .stream()
+                .map((time) -> time.getReminderTime().format(REMINDER_TIME_FORMAT))
+                .reduce((a, b) -> a + "," + b)
+                .orElse("")
         );
     }
 
@@ -143,7 +149,7 @@ public class HabitService {
             try {
                 HabitReminderTime reminderTime = new HabitReminderTime();
                 reminderTime.setHabit(habit);
-                reminderTime.setReminderTime(LocalTime.parse(time.trim()));
+                reminderTime.setReminderTime(LocalTime.parse(time.trim()).withSecond(0).withNano(0));
                 habit.getReminderTimes().add(reminderTime);
             } catch (DateTimeParseException ex) {
                 throw new ApiException(HttpStatus.BAD_REQUEST, "Horario de lembrete invalido: " + time);

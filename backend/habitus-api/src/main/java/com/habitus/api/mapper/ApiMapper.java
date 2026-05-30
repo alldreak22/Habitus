@@ -1,5 +1,6 @@
 package com.habitus.api.mapper;
 
+import java.time.format.DateTimeFormatter;
 import java.util.Comparator;
 import java.util.List;
 
@@ -21,6 +22,8 @@ import com.habitus.api.entity.User;
 @Component
 public class ApiMapper {
 
+    private static final DateTimeFormatter REMINDER_TIME_FORMAT = DateTimeFormatter.ofPattern("HH:mm");
+
     public UserResponse toUserResponse(User user) {
         return new UserResponse(user.getId(), user.getName(), user.getEmail(), user.getNick(), user.getPicture());
     }
@@ -30,7 +33,7 @@ public class ApiMapper {
             .stream()
             .map(HabitReminderTime::getReminderTime)
             .sorted()
-            .map(String::valueOf)
+            .map((time) -> time.format(REMINDER_TIME_FORMAT))
             .toList();
         List<Integer> frequencyDays = habit.getFrequencyDays()
             .stream()

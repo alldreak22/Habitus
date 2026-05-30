@@ -25,7 +25,7 @@ INSERT OR IGNORE INTO users (
     'teste',
     'teste@habitus.local',
     'Usuario Teste',
-    '$2a$10$7EqJtq98hPqEX7fNZaFWoOa5l9wY9qf2Qf4l7f4bL8nL0q8V5y8yW',
+    '$2a$10$YOrvmUShmv5NYvmkezxSnOMYNUrl0uJWja/qDz98DtKQbdFKk2qXy',
     NULL,
     CURRENT_TIMESTAMP,
     CURRENT_TIMESTAMP

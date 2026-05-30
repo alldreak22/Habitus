@@ -77,15 +77,17 @@ abstract class BaseApiIntegrationTest {
     }
 
     protected UsuarioTeste registrar(String nome, String email, String senha) throws Exception {
+        String nick = email.substring(0, email.indexOf('@')).replaceAll("[^a-zA-Z0-9._-]", "").toLowerCase();
         MvcResult resultado = mockMvc.perform(post("/api/auth/register")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("""
                     {
                       "name": "%s",
+                      "nick": "%s",
                       "email": "%s",
                       "password": "%s"
                     }
-                    """.formatted(nome, email, senha)))
+                    """.formatted(nome, nick, email, senha)))
             .andExpect(status().isCreated())
             .andReturn();
 
