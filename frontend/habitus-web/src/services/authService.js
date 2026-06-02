@@ -1,5 +1,5 @@
 import { API_BASE_URL } from './api.js';
-import { PROFILE_UPDATED_EVENT } from './profileService.js';
+import { PROFILE_UPDATED_EVENT, formatMemberSince } from './profileService.js';
 
 const AUTH_TOKEN_KEY = 'habitus-auth-token';
 const USER_STORAGE_KEY = 'habitus-user';
@@ -14,6 +14,16 @@ export async function registerUser({ email, name, nick, password }) {
   const auth = await requestAuth('/auth/register', { email, name, nick, password });
   persistAuthenticatedUser(auth);
   return auth;
+}
+
+export function logoutUser() {
+  window.localStorage.removeItem(AUTH_TOKEN_KEY);
+  window.localStorage.removeItem(USER_STORAGE_KEY);
+  window.dispatchEvent(
+    new CustomEvent(PROFILE_UPDATED_EVENT, {
+      detail: { email: '', imageUrl: null, nickname: '' },
+    }),
+  );
 }
 
 async function requestAuth(path, payload) {
@@ -55,8 +65,9 @@ function persistAuthenticatedUser(auth) {
 
   const profile = {
     email: auth.user.email ?? '',
+    createdAt: auth.user.createdAt ?? null,
     imageUrl: auth.user.picture ?? null,
-    memberSince: '-',
+    memberSince: formatMemberSince(auth.user.createdAt),
     name: auth.user.name ?? '',
     nickname: auth.user.nick ?? auth.user.name ?? '',
   };

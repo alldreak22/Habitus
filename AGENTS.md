@@ -115,6 +115,7 @@ Scripts sao auxiliares e nao fazem parte do fluxo principal.
 - Para executar SQL local no SQLite, usar Python (`python` + modulo `sqlite3`) quando for necessario rodar query/script.
 - Para consultas locais de SQLite, preferir o utilitario somente-leitura `python scripts/python/sqlite_query.py "select ..."` ou `python scripts/python/sqlite_query.py "pragma ..."` para evitar depender do CLI `sqlite3`.
 - O banco SQLite local e descartavel durante o desenvolvimento. Quando uma mudanca pedida exigir alterar estrutura ou formato de dados, nao manter codigo legado apenas para compatibilidade com registros antigos; prefira ajustar o modelo atual e, se necessario, dropar/recriar ou normalizar o banco local de desenvolvimento.
+- Para dados do calendario, usar os endpoints agregados `/api/calendar/month` e `/api/calendar/days/{date}`. Nao montar o mes com chamadas por dia. Para resumos pontuais de um unico dia, usar `/api/calendar/days/{date}` com cache no frontend.
 
 ## Controle de tarefas
 

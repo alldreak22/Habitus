@@ -42,6 +42,14 @@ export default function HabitsPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [todaySummary, setTodaySummary] = useState([]);
 
+  async function refreshTodaySummary() {
+    try {
+      setTodaySummary(await getDaySummary(formatDateKey(today)));
+    } catch (error) {
+      showToast({ message: error.message || 'Nao foi possivel carregar o resumo do dia.', type: 'warning' });
+    }
+  }
+
   useEffect(() => {
     let isMounted = true;
 
@@ -65,7 +73,7 @@ export default function HabitsPage() {
     }
 
     loadHabits();
-    getDaySummary(formatDateKey(today)).then(setTodaySummary);
+    refreshTodaySummary();
 
     return () => {
       isMounted = false;
@@ -111,6 +119,7 @@ export default function HabitsPage() {
       setEditingHabit(null);
       setIsCreating(false);
       setSearchTerm('');
+      await refreshTodaySummary();
       showToast({
         message: editingHabit ? 'Habito atualizado com sucesso.' : 'Habito criado com sucesso.',
         type: 'success',
@@ -146,6 +155,7 @@ export default function HabitsPage() {
           currentHabit.id === habitId ? updatedHabit : currentHabit,
         ),
       );
+      await refreshTodaySummary();
       showToast({ message: 'Status do habito atualizado com sucesso.', type: 'success' });
     } catch (error) {
       showToast({ message: `Nao foi possivel atualizar o status do habito. ${error.message}`, type: 'warning' });
@@ -162,9 +172,7 @@ export default function HabitsPage() {
       setHabits((currentHabits) =>
         currentHabits.filter((habit) => habit.id !== habitPendingDeletion.id),
       );
-      setTodaySummary((currentSummary) =>
-        currentSummary.filter((habit) => habit.id !== habitPendingDeletion.id),
-      );
+      await refreshTodaySummary();
       setHabitPendingDeletion(null);
       showToast({ message: 'Habito excluido com sucesso.', type: 'success' });
     } catch (error) {

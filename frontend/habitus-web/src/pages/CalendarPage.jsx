@@ -1,18 +1,26 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import TipCard from '../components/TipCard.jsx';
 import CalendarGrid from '../components/calendar/CalendarGrid.jsx';
 import DayEditor from '../components/calendar/DayEditor.jsx';
 import DaySummary from '../components/calendar/DaySummary.jsx';
-import ProductivityInsight from '../components/calendar/ProductivityInsight.jsx';
 import TopBar from '../components/layout/TopBar.jsx';
+import { useToast } from '../context/ToastContext.jsx';
+import habitFormContent from '../content/habitFormContent.json';
 import {
-  getCalendarActivity,
-  getDaySummary,
-  getProductivityInsights,
+  getCalendarDay,
+  getCalendarMonth,
+  mapCalendarActivity,
+  mapCalendarDays,
+  mapDayToActivity,
+  saveDayEntry,
 } from '../services/calendarService.js';
 import { formatDateKey, getToday } from '../utils/date.js';
 
+const { productivityTips } = habitFormContent;
+
 export default function CalendarPage() {
+  const { showToast } = useToast();
   const location = useLocation();
   const navigate = useNavigate();
   const today = useMemo(() => getToday(), []);
@@ -21,22 +29,62 @@ export default function CalendarPage() {
   );
   const [selectedDate, setSelectedDate] = useState(today);
   const [activityByDate, setActivityByDate] = useState({});
+  const [daysByDate, setDaysByDate] = useState({});
   const [selectedDaySummary, setSelectedDaySummary] = useState([]);
   const [dayDescriptions, setDayDescriptions] = useState({});
   const [isEditingDay, setIsEditingDay] = useState(false);
-  const [insights, setInsights] = useState([]);
 
   useEffect(() => {
-    getCalendarActivity(visibleMonth).then(setActivityByDate);
-  }, [visibleMonth]);
+    let isMounted = true;
+
+    getCalendarMonth(visibleMonth)
+      .then((monthData) => {
+        if (!isMounted) {
+          return;
+        }
+        setActivityByDate(mapCalendarActivity(monthData));
+        setDaysByDate(mapCalendarDays(monthData));
+      })
+      .catch((error) => {
+        if (isMounted) {
+          showToast({ message: error.message || 'Nao foi possivel carregar o calendario.', type: 'warning' });
+        }
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [showToast, visibleMonth]);
 
   useEffect(() => {
-    getDaySummary(formatDateKey(selectedDate)).then(setSelectedDaySummary);
-  }, [selectedDate]);
+    let isMounted = true;
+    const selectedDateKey = formatDateKey(selectedDate);
+    const selectedDay = daysByDate[selectedDateKey];
 
-  useEffect(() => {
-    getProductivityInsights().then(setInsights);
-  }, []);
+    async function loadSelectedDay() {
+      try {
+        const day = selectedDay ?? await getCalendarDay(selectedDateKey);
+        if (!isMounted) {
+          return;
+        }
+        setSelectedDaySummary(day?.habits ?? []);
+        setDayDescriptions((currentDescriptions) => ({
+          ...currentDescriptions,
+          [selectedDateKey]: day?.description ?? currentDescriptions[selectedDateKey] ?? '',
+        }));
+      } catch (error) {
+        if (isMounted) {
+          showToast({ message: error.message || 'Nao foi possivel carregar o resumo do dia.', type: 'warning' });
+        }
+      }
+    }
+
+    loadSelectedDay();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [daysByDate, selectedDate, showToast]);
 
   useEffect(() => {
     if (!location.state?.openDayEditor) {
@@ -53,11 +101,11 @@ export default function CalendarPage() {
   }, [location.pathname, location.state, navigate, today]);
 
   function handlePreviousMonth() {
-    setVisibleMonth((current) => new Date(current.getFullYear(), current.getMonth() - 1, 1));
+    setVisibleMonth(new Date(visibleMonth.getFullYear(), visibleMonth.getMonth() - 1, 1));
   }
 
   function handleNextMonth() {
-    setVisibleMonth((current) => new Date(current.getFullYear(), current.getMonth() + 1, 1));
+    setVisibleMonth(new Date(visibleMonth.getFullYear(), visibleMonth.getMonth() + 1, 1));
   }
 
   function handleMonthYearChange(nextMonth) {
@@ -66,8 +114,7 @@ export default function CalendarPage() {
 
   function updateActivityFromSummary(date, nextSummary) {
     const selectedDateKey = formatDateKey(date);
-    const allCompleted =
-      nextSummary.length > 0 && nextSummary.every((habit) => habit.completed);
+    const allCompleted = nextSummary.length > 0 && nextSummary.every((habit) => habit.completed);
 
     setActivityByDate((currentActivity) => ({
       ...currentActivity,
@@ -88,16 +135,33 @@ export default function CalendarPage() {
     setIsEditingDay(true);
   }
 
-  function handleSaveDay({ description, habits }) {
+  async function handleSaveDay({ description, habits }) {
     const selectedDateKey = formatDateKey(selectedDate);
 
-    setDayDescriptions((currentDescriptions) => ({
-      ...currentDescriptions,
-      [selectedDateKey]: description,
-    }));
-    setSelectedDaySummary(habits);
-    updateActivityFromSummary(selectedDate, habits);
-    setIsEditingDay(false);
+    try {
+      const savedDay = await saveDayEntry({
+        dateKey: selectedDateKey,
+        description,
+        habits,
+      });
+      setDaysByDate((currentDays) => ({
+        ...currentDays,
+        [selectedDateKey]: savedDay,
+      }));
+      setDayDescriptions((currentDescriptions) => ({
+        ...currentDescriptions,
+        [selectedDateKey]: savedDay.description ?? description,
+      }));
+      setSelectedDaySummary(savedDay.habits ?? []);
+      setActivityByDate((currentActivity) => ({
+        ...currentActivity,
+        [selectedDateKey]: mapDayToActivity(savedDay),
+      }));
+      setIsEditingDay(false);
+      showToast({ message: 'Dia salvo com sucesso.', type: 'success' });
+    } catch (error) {
+      showToast({ message: error.message || 'Nao foi possivel salvar o dia.', type: 'warning' });
+    }
   }
 
   function handleToggleDaySummary(habitId) {
@@ -162,7 +226,7 @@ export default function CalendarPage() {
                 onToggleHabit={handleToggleDaySummary}
                 onViewDetails={() => handleOpenDayEditor()}
               />
-              <ProductivityInsight insights={insights} />
+              <TipCard icon="auto_awesome" items={productivityTips} title="Dica de Produtividade" />
             </aside>
           </div>
         </section>

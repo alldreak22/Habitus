@@ -1,12 +1,12 @@
 {
   "iconOptions": [
     { "icon": "fitness_center", "label": "Treino" },
-    { "icon": "water_drop", "label": "Água" },
+    { "icon": "water_drop", "label": "Agua" },
     { "icon": "menu_book", "label": "Leitura" },
-    { "icon": "self_improvement", "label": "Meditação" },
+    { "icon": "self_improvement", "label": "Meditacao" },
     { "icon": "bedtime", "label": "Sono" },
     { "icon": "directions_walk", "label": "Caminhada" },
-    { "icon": "restaurant", "label": "Alimentação" },
+    { "icon": "restaurant", "label": "Alimentacao" },
     { "icon": "edit_note", "label": "Escrita" },
     { "icon": "self_care", "label": "Autocuidado" },
     { "icon": "sports_gymnastics", "label": "Mobilidade" },
@@ -37,10 +37,11 @@
     { "key": "sat", "label": "S" }
   ],
   "productivityTips": [
-    "Começar com hábitos pequenos aumenta a chance de consistência a longo prazo.",
-    "Agrupe o novo hábito a uma rotina que já existe para reduzir atrito.",
-    "Escolha horários realistas antes de aumentar a meta diária.",
-    "Revise a frequência depois de uma semana e ajuste antes de abandonar."
+    "Mantenha poucos habitos por vez para revisar a rotina sem sobrecarga.",
+    "Use o calendario para notar padroes: dias vazios tambem mostram onde ajustar.",
+    "Quando um habito falhar, ajuste a frequencia antes de abandonar a meta.",
+    "Revise o resumo do dia antes de criar novos habitos.",
+    "Habitos simples e bem posicionados no dia tendem a durar mais."
   ],
   "initialForm": {
     "active": true,

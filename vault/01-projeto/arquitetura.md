@@ -160,9 +160,7 @@ Areas expostas:
 - usuario atual
 - versao da aplicacao
 - habitos
-- entradas diarias
-- habitos planejados em entradas diarias
-- habitos concluidos em entradas diarias
+- calendario agregado por mes e por dia
 
 O CORS permite chamadas locais a partir de:
 

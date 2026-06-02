@@ -4,11 +4,30 @@ export const PROFILE_UPDATED_EVENT = 'habitus-profile-updated';
 const USER_STORAGE_KEY = 'habitus-user';
 const DEFAULT_PROFILE = {
   email: '',
+  createdAt: null,
   imageUrl: null,
   memberSince: '-',
   name: '',
   nickname: '',
 };
+
+export function formatMemberSince(createdAt) {
+  if (!createdAt) {
+    return '-';
+  }
+
+  const date = new Date(createdAt);
+  if (Number.isNaN(date.getTime())) {
+    return '-';
+  }
+
+  return new Intl.DateTimeFormat('pt-BR', {
+    month: 'long',
+    year: 'numeric',
+  })
+    .format(date)
+    .replace(/^./, (character) => character.toUpperCase());
+}
 
 export async function getProfileOverview() {
   let cachedUser = {};
@@ -20,15 +39,18 @@ export async function getProfileOverview() {
 
   const apiUser = await apiRequest('/users/me');
   const apiProfile = {
+    createdAt: apiUser?.createdAt ?? null,
     name: apiUser?.name ?? '',
     nickname: apiUser?.nick ?? apiUser?.name ?? '',
     email: apiUser?.email ?? '',
     imageUrl: apiUser?.picture ?? null,
   };
+  const memberSince = formatMemberSince(apiProfile.createdAt ?? cachedUser.createdAt ?? null);
   const profile = {
     ...DEFAULT_PROFILE,
     ...cachedUser,
     ...apiProfile,
+    memberSince,
   };
   window.localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(profile));
 
@@ -42,7 +64,7 @@ export async function getProfileOverview() {
 
 export async function saveProfile(profile) {
   if (!profile?.name || !profile?.email) {
-    throw new Error('Nome e email sao obrigatorios.');
+    throw new Error('Nome e e-mail são obrigatórios.');
   }
 
   const savedProfile = await apiRequest('/users/me', {
@@ -57,13 +79,25 @@ export async function saveProfile(profile) {
   const normalized = {
     ...DEFAULT_PROFILE,
     ...profile,
+    createdAt: savedProfile?.createdAt ?? profile.createdAt ?? null,
     email: savedProfile?.email ?? profile.email,
     imageUrl: savedProfile?.picture ?? profile.imageUrl ?? null,
     name: savedProfile?.name ?? profile.name,
     nickname: savedProfile?.nick ?? profile.nickname ?? profile.name,
   };
+  normalized.memberSince = formatMemberSince(normalized.createdAt);
   window.localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(normalized));
   window.dispatchEvent(new CustomEvent(PROFILE_UPDATED_EVENT, { detail: normalized }));
 
   return normalized;
+}
+
+export async function changePassword({ currentPassword, newPassword }) {
+  return apiRequest('/users/me/password', {
+    method: 'PUT',
+    body: JSON.stringify({
+      currentPassword,
+      newPassword,
+    }),
+  });
 }

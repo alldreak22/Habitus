@@ -1,4 +1,5 @@
 import { apiRequest } from './api.js';
+import { clearCalendarCache } from './calendarService.js';
 
 export async function getHabits() {
   const habits = await apiRequest('/habits');
@@ -10,6 +11,7 @@ export async function createHabit(habit) {
     method: 'POST',
     body: JSON.stringify(habit),
   });
+  clearCalendarCache();
   return normalizeHabit(createdHabit);
 }
 
@@ -18,13 +20,16 @@ export async function updateHabit(id, habit) {
     method: 'PUT',
     body: JSON.stringify(habit),
   });
+  clearCalendarCache();
   return normalizeHabit(updatedHabit);
 }
 
 export async function deleteHabit(id) {
-  return apiRequest(`/habits/${id}`, {
+  const response = await apiRequest(`/habits/${id}`, {
     method: 'DELETE',
   });
+  clearCalendarCache();
+  return response;
 }
 
 function normalizeHabit(habit) {

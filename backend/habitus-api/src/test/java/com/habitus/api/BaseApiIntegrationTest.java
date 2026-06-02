@@ -148,27 +148,6 @@ abstract class BaseApiIntegrationTest {
         return objectMapper.readTree(resultado.getResponse().getContentAsString()).at("/id").asLong();
     }
 
-    protected long criarEntradaDiaria(String token, String data) throws Exception {
-        MvcResult resultado = mockMvc.perform(post("/api/daily-entries")
-                .header("Authorization", "Bearer " + token)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(jsonEntradaDiaria(data)))
-            .andExpect(status().isCreated())
-            .andReturn();
-
-        return objectMapper.readTree(resultado.getResponse().getContentAsString()).at("/id").asLong();
-    }
-
-    protected String jsonEntradaDiaria(String data) {
-        return """
-            {
-              "entryDate": "%s",
-              "markdownContent": "## Meu dia",
-              "planningNotes": "Priorizar estudo"
-            }
-            """.formatted(data);
-    }
-
     protected record UsuarioTeste(Long id, String email, String token) {
         String cabecalhoAutorizacao() {
             return "Bearer " + token;

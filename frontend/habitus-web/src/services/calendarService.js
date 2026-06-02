@@ -1,95 +1,159 @@
 import { apiRequest } from './api.js';
-import { getHabits } from './habitService.js';
 
-function isNotFoundError(error) {
-  return String(error?.message ?? '').includes('404');
+const monthCache = new Map();
+const dayCache = new Map();
+const inFlightRequests = new Map();
+let cacheVersion = 0;
+
+function monthPayload(referenceDate) {
+  return {
+    year: referenceDate.getFullYear(),
+    month: referenceDate.getMonth() + 1,
+  };
 }
 
-function monthDateKeys(referenceDate) {
-  const year = referenceDate.getFullYear();
-  const month = referenceDate.getMonth();
-  const lastDay = new Date(year, month + 1, 0).getDate();
-  const keys = [];
+function monthKeyFromDate(referenceDate) {
+  return [
+    String(referenceDate.getFullYear()),
+    String(referenceDate.getMonth() + 1).padStart(2, '0'),
+  ].join('-');
+}
 
-  for (let day = 1; day <= lastDay; day += 1) {
-    const date = new Date(year, month, day);
-    const key = [
-      String(date.getFullYear()),
-      String(date.getMonth() + 1).padStart(2, '0'),
-      String(date.getDate()).padStart(2, '0'),
-    ].join('-');
-    keys.push(key);
+function monthKeyFromDayKey(dateKey) {
+  return dateKey.slice(0, 7);
+}
+
+function requestOnce(key, request) {
+  if (inFlightRequests.has(key)) {
+    return inFlightRequests.get(key);
   }
 
-  return keys;
+  let promise;
+  promise = request().finally(() => {
+    if (inFlightRequests.get(key) === promise) {
+      inFlightRequests.delete(key);
+    }
+  });
+  inFlightRequests.set(key, promise);
+  return promise;
+}
+
+function rememberDay(day) {
+  if (day?.date) {
+    dayCache.set(day.date, day);
+  }
+  return day;
+}
+
+function rememberMonth(monthKey, monthData) {
+  monthCache.set(monthKey, monthData);
+  (monthData?.days ?? []).forEach(rememberDay);
+  return monthData;
+}
+
+function replaceDayInMonth(day) {
+  if (!day?.date) {
+    return;
+  }
+
+  const monthKey = monthKeyFromDayKey(day.date);
+  const monthData = monthCache.get(monthKey);
+  if (!monthData) {
+    return;
+  }
+
+  monthCache.set(monthKey, {
+    ...monthData,
+    days: monthData.days.map((currentDay) => (currentDay.date === day.date ? day : currentDay)),
+  });
+}
+
+export function clearCalendarCache() {
+  cacheVersion += 1;
+  monthCache.clear();
+  dayCache.clear();
+  inFlightRequests.clear();
+}
+
+export async function getCalendarMonth(visibleMonth = new Date()) {
+  const cacheKey = monthKeyFromDate(visibleMonth);
+  const cachedMonth = monthCache.get(cacheKey);
+  if (cachedMonth) {
+    return cachedMonth;
+  }
+
+  const requestCacheVersion = cacheVersion;
+  return requestOnce(`month:${cacheKey}`, async () => {
+    const monthData = await apiRequest('/calendar/month', {
+      method: 'POST',
+      body: JSON.stringify(monthPayload(visibleMonth)),
+    });
+    if (requestCacheVersion !== cacheVersion) {
+      return monthData;
+    }
+    return rememberMonth(cacheKey, monthData);
+  });
+}
+
+export async function getCalendarDay(dateKey) {
+  const cachedDay = dayCache.get(dateKey);
+  if (cachedDay) {
+    return cachedDay;
+  }
+
+  const requestCacheVersion = cacheVersion;
+  return requestOnce(`day:${dateKey}`, async () => {
+    const day = await apiRequest(`/calendar/days/${dateKey}`);
+    if (requestCacheVersion !== cacheVersion) {
+      return day;
+    }
+    return rememberDay(day);
+  });
+}
+
+export function mapCalendarDays(monthData) {
+  return Object.fromEntries((monthData?.days ?? []).map((day) => [day.date, day]));
+}
+
+export function mapCalendarActivity(monthData) {
+  return Object.fromEntries(
+    (monthData?.days ?? []).map((day) => [day.date, mapDayToActivity(day)]),
+  );
 }
 
 export async function getCalendarActivity(visibleMonth = new Date()) {
-  const dateKeys = monthDateKeys(visibleMonth);
-  const summaryEntries = await Promise.all(
-    dateKeys.map(async (dateKey) => {
-      const summary = await getDaySummary(dateKey);
-      return [dateKey, summary];
-    }),
-  );
-
-  return Object.fromEntries(
-    summaryEntries.map(([dateKey, summary]) => {
-      const completed = summary.length > 0 && summary.every((habit) => habit.completed);
-      return [
-        dateKey,
-        {
-          completed,
-          markers: summary.map((habit) => ({
-            color: habit.color,
-            id: habit.id,
-            name: habit.name,
-          })),
-        },
-      ];
-    }),
-  );
+  return mapCalendarActivity(await getCalendarMonth(visibleMonth));
 }
 
 export async function getDaySummary(dateKey) {
-  const habits = await getHabits();
-  const habitsById = new Map(habits.map((habit) => [habit.id, habit]));
-  let entry;
-  try {
-    entry = await apiRequest(`/daily-entries/date/${dateKey}`);
-  } catch (error) {
-    if (isNotFoundError(error)) {
-      return [];
-    }
-    throw error;
-  }
-
-  const [plannedHabits, completedHabits] = await Promise.all([
-    apiRequest(`/daily-entries/${entry.id}/planned-habits`),
-    apiRequest(`/daily-entries/${entry.id}/completed-habits`),
-  ]);
-  const completedByHabitId = new Map(completedHabits.map((item) => [item.habitId, item]));
-
-  return plannedHabits
-    .map((planned) => {
-      const habit = habitsById.get(planned.habitId);
-      if (!habit) {
-        return null;
-      }
-      const completion = completedByHabitId.get(planned.habitId);
-
-      return {
-        completed: Boolean(completion?.completed),
-        color: habit.color,
-        detail: habit.description,
-        id: planned.habitId,
-        icon: habit.icon,
-        name: habit.name,
-      };
-    })
-    .filter(Boolean);
+  const day = await getCalendarDay(dateKey);
+  return day?.habits ?? [];
 }
 
-export async function getProductivityInsights() {
-  return [];
+export async function saveDayEntry({ dateKey, description = '', habits = [] }) {
+  const savedDay = await apiRequest(`/calendar/days/${dateKey}`, {
+    method: 'PUT',
+    body: JSON.stringify({
+      description,
+      habits: habits.map((habit) => ({
+        habitId: habit.id,
+        completed: Boolean(habit.completed),
+      })),
+    }),
+  });
+
+  rememberDay(savedDay);
+  replaceDayInMonth(savedDay);
+  return savedDay;
+}
+
+export function mapDayToActivity(day) {
+  return {
+    completed: Boolean(day?.completed),
+    markers: (day?.markers ?? []).map((marker) => ({
+      color: marker.color,
+      id: marker.habitId,
+      name: marker.name,
+    })),
+  };
 }

@@ -365,29 +365,60 @@ h5 {
   display: flex;
   align-items: center;
   gap: 12px;
-  width: calc(100% - 48px);
-  border: 1px solid transparent;
-  border-radius: 12px;
-  margin-top: 0;
-  margin-right: 24px;
-  margin-left: 24px;
-  background: var(--surface-low);
-  padding: 8px;
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  background: transparent;
+  padding: 0;
   text-align: left;
-  transition:
-    border-color 160ms ease,
-    background 160ms ease;
-}
-
-.sidebar-user:hover {
-  border-color: var(--primary-border-soft);
-  background: var(--surface-container-low);
 }
 
 .sidebar-footer {
   display: grid;
   gap: 12px;
   margin-top: auto;
+}
+
+.sidebar-user-card {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 24px;
+  border: 1px solid transparent;
+  border-radius: 12px;
+  background: var(--surface-low);
+  padding: 8px;
+  transition:
+    border-color 160ms ease,
+    background 160ms ease;
+}
+
+.sidebar-user-card:hover,
+.sidebar-user-card:focus-within {
+  border-color: var(--primary-border-soft);
+  background: var(--surface-container-low);
+}
+
+.sidebar-logout-button {
+  display: grid;
+  width: 32px;
+  height: 32px;
+  flex: 0 0 32px;
+  place-items: center;
+  border: 0;
+  color: var(--danger);
+  background: transparent;
+  padding: 0;
+  transition: color 160ms ease;
+}
+
+.sidebar-logout-button span {
+  font-size: 1.32rem;
+  line-height: 1;
+}
+
+.sidebar-logout-button:hover {
+  color: color-mix(in srgb, var(--danger) 76%, white);
 }
 
 .sidebar-version {
@@ -420,7 +451,7 @@ h5 {
 
 .sidebar-user-details p {
   overflow: hidden;
-  margin-bottom: 6px;
+  margin-bottom: 2px;
   color: var(--text-primary);
   font-weight: 600;
   text-overflow: ellipsis;
@@ -1174,7 +1205,26 @@ h5 {
   background: var(--primary-bg-soft);
 }
 
-.day-habit-item.completed span:last-child {
+.day-habit-toggle {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  align-items: center;
+  gap: 12px;
+  border: 0;
+  color: inherit;
+  background: transparent;
+  padding: 0;
+  text-align: left;
+}
+
+.day-habit-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.day-habit-item.completed .day-habit-name {
   color: var(--text-secondary);
   text-decoration: line-through;
 }
@@ -2707,7 +2757,9 @@ h5 {
 
 .profile-actions {
   display: flex;
+  flex-wrap: wrap;
   justify-content: flex-end;
+  gap: 12px;
   border-top: 1px solid var(--border);
   padding-top: 24px;
 }

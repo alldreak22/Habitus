@@ -5,6 +5,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.habitus.api.dto.request.ChangePasswordRequest;
 import com.habitus.api.dto.request.LoginRequest;
 import com.habitus.api.dto.request.RegisterRequest;
 import com.habitus.api.dto.request.UpdateUserProfileRequest;
@@ -85,6 +86,20 @@ public class AuthService {
 
         User savedUser = userRepository.save(user);
         return mapper.toUserResponse(savedUser);
+    }
+
+    @Transactional
+    public void alterarSenha(User user, ChangePasswordRequest requisicao) {
+        if (!passwordEncoder.matches(requisicao.currentPassword(), user.getPassword())) {
+            throw new UnauthorizedException("Senha atual invalida");
+        }
+
+        if (passwordEncoder.matches(requisicao.newPassword(), user.getPassword())) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "Nova senha nao pode ser igual a senha atual");
+        }
+
+        user.setPassword(passwordEncoder.encode(requisicao.newPassword()));
+        userRepository.save(user);
     }
 
     private AuthResponse respostaAutenticacao(User user) {

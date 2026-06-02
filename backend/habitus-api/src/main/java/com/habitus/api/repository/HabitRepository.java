@@ -10,5 +10,7 @@ import com.habitus.api.entity.Habit;
 public interface HabitRepository extends JpaRepository<Habit, Long> {
     List<Habit> findByUserIdOrderByCreatedAtDesc(Long userId);
 
+    List<Habit> findByUserIdAndActiveTrueOrderByCreatedAtDesc(Long userId);
+
     Optional<Habit> findByIdAndUserId(Long id, Long userId);
 }

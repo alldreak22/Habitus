@@ -40,10 +40,12 @@ export default function DayEditor({
   }, [habits]);
 
   useEffect(() => {
+    const nextDescription = description || '';
+    setEditorHtml(nextDescription);
     if (editorRef.current) {
-      editorRef.current.innerHTML = editorHtml || '';
+      editorRef.current.innerHTML = nextDescription;
     }
-  }, []);
+  }, [description]);
 
   function focusEditor() {
     editorRef.current?.focus();
@@ -76,6 +78,10 @@ export default function DayEditor({
         habit.id === habitId ? { ...habit, completed: !habit.completed } : habit,
       ),
     );
+  }
+
+  function removePlannedHabit(habitId) {
+    setPlannedHabits((currentHabits) => currentHabits.filter((habit) => habit.id !== habitId));
   }
 
   function handleAddHabits(nextHabits) {
@@ -170,24 +176,33 @@ export default function DayEditor({
             </header>
             <div className="day-habits-list">
               {plannedHabits.map((habit) => (
-                <button
+                <div
                   key={habit.id}
                   className={habit.completed ? 'day-habit-item completed' : 'day-habit-item'}
-                  type="button"
-                  onClick={() => togglePlannedHabit(habit.id)}
-                  aria-pressed={habit.completed}
                 >
-                  <span
-                    className="habit-icon"
-                    style={{ backgroundColor: `${habit.color}1f`, color: habit.color }}
-                    aria-hidden="true"
+                  <button
+                    className="day-habit-toggle"
+                    type="button"
+                    onClick={() => togglePlannedHabit(habit.id)}
+                    aria-pressed={habit.completed}
                   >
-                    <span className="material-symbols-outlined">
-                      {habit.completed ? 'check' : habit.icon}
+                    <span
+                      className="habit-icon"
+                      style={{ backgroundColor: `${habit.color}1f`, color: habit.color }}
+                      aria-hidden="true"
+                    >
+                      <span className="material-symbols-outlined">
+                        {habit.completed ? 'check' : habit.icon}
+                      </span>
                     </span>
-                  </span>
-                  <span>{habit.name}</span>
-                </button>
+                    <span className="day-habit-name">{habit.name}</span>
+                  </button>
+                  <IconButton
+                    icon="close"
+                    label={`Remover ${habit.name} deste dia`}
+                    onClick={() => removePlannedHabit(habit.id)}
+                  />
+                </div>
               ))}
             </div>
             <button className="add-day-habit-button" type="button" onClick={() => setIsAddHabitOpen(true)}>

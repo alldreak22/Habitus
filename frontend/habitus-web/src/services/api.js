@@ -31,7 +31,9 @@ export async function apiRequest(path, options = {}) {
     } catch (error) {
       // keep fallback message
     }
-    throw new Error(errorMessage);
+    const requestError = new Error(errorMessage);
+    requestError.status = response.status;
+    throw requestError;
   }
 
   if (response.status === 204) {

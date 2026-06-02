@@ -1,9 +1,22 @@
-# Tarefa atual
-
-Sem itens pendentes no momento.
+﻿# Tarefa atual
 
 ## Concluidos
 
+- Trocar o componente de Insight de Produtividade pelo componente de dicas de produtividade usado em habitos e atualizar os textos das dicas para o contexto do app. (CONCLUIDO)
+- Manter a data real selecionada ao trocar o mes visivel do calendario, carregando o resumo pelo cache/endpoint de dia unico quando necessario. (CONCLUIDO)
+- Otimizar resumo pontual do dia com endpoint de dia unico, cache em memoria e correcao da selecao ao trocar de mes no calendario. (CONCLUIDO)
+- Reduzir requisicoes da tela de calendario usando endpoints agregados de mes/dia, removendo endpoints antigos de entrada diaria, habitos planejados e habitos concluidos. (CONCLUIDO)
+- Mostrar habitos cadastrados no calendario seguindo a frequencia, com bolinhas coloridas por dia, resumo do dia automatico e edicao manual persistida por daily entries. (CONCLUIDO)
+- Criar endpoint de mudanÃ§a de senha, validando se senha atual nÃ£o Ã© igual a nova. ValidaÃ§Ã£o no front de tamanho minimo de 8 e se senha confirmada Ã© a mesma que a nova senha. (CONCLUIDO)
+- Vincular novo endpoint realizado pela ultima tarefa na tela de perfil em alterar senha. (CONCLUIDO)
+- Aumentar o icone de sair do menu lateral, ajustar hover para vermelho claro sem escala e adicionar modal de confirmacao antes do logout. (CONCLUIDO)
+- Refinar o resumo de perfil do menu lateral removendo a caixa do icone de sair e reduzindo o espaco vertical entre nick e e-mail. (CONCLUIDO)
+- Ajustar o botao de sair do menu lateral para ficar no mesmo contexto visual do resumo de perfil, vermelho e como clique direto no icone. (CONCLUIDO)
+- Remover o campo de sessao da tela de perfil e mover o botao de sair para o resumo de perfil no menu lateral. (CONCLUIDO)
+- Restaurar o botÃ£o de alterar senha no perfil, manter o modal sem sucesso falso e corrigir os acentos da tela de perfil. (CONCLUIDO)
+- Botao de sair do perfil estava no mesmo contexto de salvar alteracoes, tem q coloc-lo em outro contexto. (CONCLUIDO)
+- O campo de senha do perfil nao atualiza senha e tem um campo de "Carregando..." que nao faz sentido. (CONCLUIDO)
+- Colocar botao de sair no perfil e preencher o "Membro desde.." com o campo de `createdAt` da tabela `users`. (CONCLUIDO)
 - Criar scripts Python para resetar o banco SQLite local e inserir 10 habitos exemplares de desenvolvimento. (CONCLUIDO)
 - Dropar e recriar banco SQLite local com usuario inicial `teste`/`pass`, definir `/login` como tela inicial e integrar login real por nick ou e-mail com senha correta. (CONCLUIDO)
 - Melhorar feedback de erro no cadastro para exibir os campos retornados pela API em respostas 400. (CONCLUIDO)

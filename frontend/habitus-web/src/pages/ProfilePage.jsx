@@ -4,9 +4,16 @@ import IconButton from '../components/IconButton.jsx';
 import TopBar from '../components/layout/TopBar.jsx';
 import ProfileAvatar from '../components/profile/ProfileAvatar.jsx';
 import { useToast } from '../context/ToastContext.jsx';
-import { getProfileOverview, saveProfile } from '../services/profileService.js';
+import { changePassword, getProfileOverview, saveProfile } from '../services/profileService.js';
 
-const emptyProfile = { email: '', imageUrl: null, memberSince: '-', name: '', nickname: '' };
+const emptyProfile = {
+  email: '',
+  createdAt: null,
+  imageUrl: null,
+  memberSince: '-',
+  name: '',
+  nickname: '',
+};
 
 export default function ProfilePage() {
   const { showToast } = useToast();
@@ -24,11 +31,10 @@ export default function ProfilePage() {
         setProfileForm(overview.profile);
       })
       .catch((error) => {
-        showToast({ message: error.message || 'Nao foi possivel carregar o perfil.', type: 'warning' });
+        showToast({ message: error.message || 'Não foi possível carregar o perfil.', type: 'warning' });
       });
   }, [showToast]);
 
-  const security = profileOverview?.security;
   const summary = profileOverview?.summary;
   const focusPrompt = profileOverview?.focusPrompt;
   const completionPercentage = summary?.completionPercentage ?? 0;
@@ -70,7 +76,7 @@ export default function ProfilePage() {
     }
 
     if (!emailRegex.test(email)) {
-      showToast({ message: 'Informe um email valido para salvar o perfil.', type: 'warning' });
+      showToast({ message: 'Informe um e-mail válido para salvar o perfil.', type: 'warning' });
       return;
     }
 
@@ -80,7 +86,7 @@ export default function ProfilePage() {
       setProfileForm(saved);
       showToast({ message: 'Perfil salvo com sucesso.', type: 'success' });
     } catch (error) {
-      showToast({ message: error.message || 'Nao foi possivel salvar o perfil.', type: 'warning' });
+      showToast({ message: error.message || 'Não foi possível salvar o perfil.', type: 'warning' });
     }
   }
 
@@ -144,7 +150,7 @@ export default function ProfilePage() {
                 </span>
                 <div>
                   <p>Senha</p>
-                  <span>{security?.passwordLastChanged ?? 'Carregando...'}</span>
+                  <span>Use esta opção para iniciar a alteração da senha da conta.</span>
                 </div>
                 <Button variant="secondary" onClick={() => setIsPasswordModalOpen(true)}>
                   Alterar senha
@@ -224,6 +230,7 @@ function PasswordModal({ onClose }) {
     newPassword: '',
     confirmPassword: '',
   });
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [visibleFields, setVisibleFields] = useState({});
 
   const strength = useMemo(() => {
@@ -250,7 +257,7 @@ function PasswordModal({ onClose }) {
     }));
   }
 
-  function handleSubmit(event) {
+  async function handleSubmit(event) {
     event.preventDefault();
     if (!form.currentPassword || !form.newPassword || !form.confirmPassword) {
       showToast({ message: 'Preencha todos os campos de senha.', type: 'warning' });
@@ -258,13 +265,29 @@ function PasswordModal({ onClose }) {
     }
     if (form.newPassword.length < 8 || form.newPassword !== form.confirmPassword) {
       showToast({
-        message: 'A nova senha precisa ter 8+ caracteres e coincidir com a confirmacao.',
+        message: 'A nova senha precisa ter 8+ caracteres e coincidir com a confirmação.',
         type: 'warning',
       });
       return;
     }
-    showToast({ message: 'Senha atualizada com sucesso.', type: 'success' });
-    onClose();
+    if (form.currentPassword === form.newPassword) {
+      showToast({ message: 'A nova senha não pode ser igual à senha atual.', type: 'warning' });
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      await changePassword({
+        currentPassword: form.currentPassword,
+        newPassword: form.newPassword,
+      });
+      showToast({ message: 'Senha alterada com sucesso.', type: 'success' });
+      onClose();
+    } catch (error) {
+      showToast({ message: error.message || 'Não foi possível alterar a senha.', type: 'warning' });
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   return (
@@ -321,10 +344,12 @@ function PasswordModal({ onClose }) {
           </div>
 
           <footer>
-            <Button variant="secondary" onClick={onClose}>
+            <Button variant="secondary" onClick={onClose} disabled={isSubmitting}>
               Cancelar
             </Button>
-            <Button type="submit">Salvar Alterações</Button>
+            <Button type="submit" disabled={isSubmitting}>
+              {isSubmitting ? 'Salvando...' : 'Salvar alterações'}
+            </Button>
           </footer>
         </form>
       </section>

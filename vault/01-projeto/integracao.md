@@ -109,61 +109,40 @@ Contrato principal de entrada:
 - `reminderTimes`
 - `frequencyDays`
 
-## Entradas diarias
+## Calendario
 
-Endpoints usados para integracao de entradas diarias:
+Endpoints usados para integracao do calendario:
 
-- `POST /daily-entries`: cria entrada diaria
-- `GET /daily-entries/date/{date}`: busca entrada diaria por data
-- `PUT /daily-entries/{id}`: atualiza entrada diaria
+- `POST /calendar/month`: carrega todos os dias de um mes em uma unica requisicao
+- `GET /calendar/days/{date}`: carrega um unico dia para resumos pontuais
+- `PUT /calendar/days/{date}`: salva a edicao manual de um dia em uma unica requisicao
 
-Contrato principal de entrada:
+Contrato principal de `POST /calendar/month`:
 
-- `entryDate`
-- `markdownContent`
-- `planningNotes`
+- `year`
+- `month`
 
-## Habitos planejados
+Contrato principal de `PUT /calendar/days/{date}`:
 
-Endpoints usados para integracao de habitos planejados:
+- `description`
+- `habits`
 
-- `POST /daily-entries/{entryId}/planned-habits`: adiciona habito planejado
-- `GET /daily-entries/{entryId}/planned-habits`: lista habitos planejados
-- `DELETE /daily-entries/{entryId}/planned-habits/{habitId}`: remove habito planejado
-
-Contrato principal de entrada:
-
-- `habitId`
-
-## Habitos concluidos
-
-Endpoints usados para integracao de habitos concluidos:
-
-- `POST /daily-entries/{entryId}/completed-habits`: registra conclusao de habito
-- `GET /daily-entries/{entryId}/completed-habits`: lista habitos concluidos
-- `PUT /daily-entries/{entryId}/completed-habits/{habitId}`: atualiza conclusao de habito
-
-Contrato principal de entrada:
+Cada item de `habits`:
 
 - `habitId`
 - `completed`
-- `notes`
+
+O frontend nao deve montar o calendario fazendo chamadas por dia. A tela de calendario deve carregar o mes por `/calendar/month` e salvar alteracoes por `/calendar/days/{date}`.
+Resumos pontuais, como o resumo do dia atual na tela de habitos, devem usar cache do frontend e fallback para `/calendar/days/{date}`.
 
 ## Estado atual do frontend
 
 Servicos atuais:
 
 - `src/services/api.js`: cliente HTTP central para a API
-- `src/services/calendarService.js`: usa mocks de calendario, habitos e insights
-- `src/services/habitService.js`: usa mock de habitos
-- `src/services/profileService.js`: usa mock de perfil e `localStorage`
-
-Dados mockados atuais:
-
-- `src/content/calendarMock.json`
-- `src/content/habitsMock.json`
-- `src/content/productivityInsights.json`
-- `src/content/profileMock.json`
+- `src/services/calendarService.js`: usa endpoints agregados de calendario
+- `src/services/habitService.js`: usa endpoints reais de habitos
+- `src/services/profileService.js`: usa endpoints reais de perfil e cache local apenas para configuracoes/token
 
 ## CORS
 

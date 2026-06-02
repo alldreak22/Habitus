@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.habitus.api.dto.request.ChangePasswordRequest;
 import com.habitus.api.dto.request.LoginRequest;
 import com.habitus.api.dto.request.RegisterRequest;
 import com.habitus.api.dto.request.UpdateUserProfileRequest;
@@ -47,5 +48,11 @@ public class AuthController {
     @PutMapping("/users/me")
     public UserResponse atualizarUsuarioAtual(@Valid @RequestBody UpdateUserProfileRequest requisicao) {
         return authService.atualizarUsuarioAtual(currentUserService.obterUsuarioAtual(), requisicao);
+    }
+
+    @PutMapping("/users/me/password")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void alterarSenha(@Valid @RequestBody ChangePasswordRequest requisicao) {
+        authService.alterarSenha(currentUserService.obterUsuarioAtual(), requisicao);
     }
 }

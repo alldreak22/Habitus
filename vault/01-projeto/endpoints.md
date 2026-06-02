@@ -6,6 +6,7 @@
 - `POST /api/auth/login`: autentica um usuario com `login` (nick ou e-mail) e `password`, e retorna os dados de autenticacao.
 - `GET /api/users/me`: retorna os dados do usuario autenticado.
 - `PUT /api/users/me`: atualiza os dados do usuario autenticado, incluindo `picture`.
+- `PUT /api/users/me/password`: altera a senha do usuario autenticado com `currentPassword` e `newPassword`.
 
 ## Versao
 
@@ -20,20 +21,8 @@
 - `DELETE /api/habits/{id}`: exclui um habito do usuario autenticado pelo id.
 - `GET /api/habits/{id}/history`: lista o historico de conclusoes de um habito do usuario autenticado.
 
-## Entradas diarias
+## Calendario
 
-- `POST /api/daily-entries`: cria uma entrada diaria para o usuario autenticado.
-- `GET /api/daily-entries/date/{date}`: retorna uma entrada diaria do usuario autenticado pela data.
-- `PUT /api/daily-entries/{id}`: atualiza uma entrada diaria do usuario autenticado pelo id.
-
-## Habitos planejados
-
-- `POST /api/daily-entries/{entryId}/planned-habits`: adiciona um habito planejado a uma entrada diaria do usuario autenticado.
-- `GET /api/daily-entries/{entryId}/planned-habits`: lista os habitos planejados de uma entrada diaria do usuario autenticado.
-- `DELETE /api/daily-entries/{entryId}/planned-habits/{habitId}`: remove um habito planejado de uma entrada diaria do usuario autenticado.
-
-## Habitos concluidos
-
-- `POST /api/daily-entries/{entryId}/completed-habits`: registra a conclusao de um habito em uma entrada diaria do usuario autenticado.
-- `GET /api/daily-entries/{entryId}/completed-habits`: lista os habitos concluidos de uma entrada diaria do usuario autenticado.
-- `PUT /api/daily-entries/{entryId}/completed-habits/{habitId}`: atualiza a conclusao de um habito em uma entrada diaria do usuario autenticado.
+- `POST /api/calendar/month`: retorna todos os dias de um mes com bolinhas, habitos do dia e entradas manuais, usando `year` e `month`.
+- `GET /api/calendar/days/{date}`: retorna um unico dia do calendario com resumo, bolinhas e habitos do dia.
+- `PUT /api/calendar/days/{date}`: salva a edicao manual de um dia, com `description` e lista de `habits` contendo `habitId` e `completed`.

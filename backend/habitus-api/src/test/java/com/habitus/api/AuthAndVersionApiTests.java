@@ -48,6 +48,7 @@ class AuthAndVersionApiTests extends BaseApiIntegrationTest {
             .andExpect(jsonPath("$.user.name").value("Andre"))
             .andExpect(jsonPath("$.user.nick").value("andre"))
             .andExpect(jsonPath("$.user.email").value("andre@example.com"))
+            .andExpect(jsonPath("$.user.createdAt", notNullValue()))
             .andExpect(jsonPath("$.token", notNullValue()))
             .andExpect(jsonPath("$.tokenType").value("Bearer"));
     }
@@ -125,6 +126,7 @@ class AuthAndVersionApiTests extends BaseApiIntegrationTest {
                     """))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.user.email").value("andre@example.com"))
+            .andExpect(jsonPath("$.user.createdAt", notNullValue()))
             .andExpect(jsonPath("$.token", notNullValue()))
             .andExpect(jsonPath("$.tokenType").value("Bearer"));
     }
@@ -144,6 +146,7 @@ class AuthAndVersionApiTests extends BaseApiIntegrationTest {
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.user.email").value("andre@example.com"))
             .andExpect(jsonPath("$.user.nick").value("andre"))
+            .andExpect(jsonPath("$.user.createdAt", notNullValue()))
             .andExpect(jsonPath("$.token", notNullValue()))
             .andExpect(jsonPath("$.tokenType").value("Bearer"));
     }
@@ -179,7 +182,8 @@ class AuthAndVersionApiTests extends BaseApiIntegrationTest {
         mockMvc.perform(get("/api/users/me").header("Authorization", usuario.cabecalhoAutorizacao()))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.id").value(usuario.id()))
-            .andExpect(jsonPath("$.email").value(usuario.email()));
+            .andExpect(jsonPath("$.email").value(usuario.email()))
+            .andExpect(jsonPath("$.createdAt", notNullValue()));
     }
 
     @Test
@@ -201,13 +205,103 @@ class AuthAndVersionApiTests extends BaseApiIntegrationTest {
             .andExpect(jsonPath("$.name").value("Usuario Atualizado"))
             .andExpect(jsonPath("$.email").value("usuario.atualizado@example.com"))
             .andExpect(jsonPath("$.nick").value("user_atualizado"))
-            .andExpect(jsonPath("$.picture").value("data:image/png;base64,AAAA"));
+            .andExpect(jsonPath("$.picture").value("data:image/png;base64,AAAA"))
+            .andExpect(jsonPath("$.createdAt", notNullValue()));
 
         mockMvc.perform(get("/api/users/me").header("Authorization", usuario.cabecalhoAutorizacao()))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.name").value("Usuario Atualizado"))
             .andExpect(jsonPath("$.email").value("usuario.atualizado@example.com"))
             .andExpect(jsonPath("$.nick").value("user_atualizado"))
-            .andExpect(jsonPath("$.picture").value("data:image/png;base64,AAAA"));
+            .andExpect(jsonPath("$.picture").value("data:image/png;base64,AAAA"))
+            .andExpect(jsonPath("$.createdAt", notNullValue()));
+    }
+
+    @Test
+    void usuarioAtualPodeAlterarSenhaELoginPassaAUsarSenhaNova() throws Exception {
+        UsuarioTeste usuario = registrar("Usuario Senha", "senha@example.com", "123456");
+
+        mockMvc.perform(put("/api/users/me/password")
+                .header("Authorization", usuario.cabecalhoAutorizacao())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("""
+                    {
+                      "currentPassword": "123456",
+                      "newPassword": "12345678"
+                    }
+                    """))
+            .andExpect(status().isNoContent());
+
+        mockMvc.perform(post("/api/auth/login")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("""
+                    {
+                      "login": "senha@example.com",
+                      "password": "123456"
+                    }
+                    """))
+            .andExpect(status().isUnauthorized());
+
+        mockMvc.perform(post("/api/auth/login")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("""
+                    {
+                      "login": "senha@example.com",
+                      "password": "12345678"
+                    }
+                    """))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.token", notNullValue()));
+    }
+
+    @Test
+    void alterarSenhaRejeitaSenhaAtualIncorreta() throws Exception {
+        UsuarioTeste usuario = registrar("Usuario Senha", "senha@example.com", "123456");
+
+        mockMvc.perform(put("/api/users/me/password")
+                .header("Authorization", usuario.cabecalhoAutorizacao())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("""
+                    {
+                      "currentPassword": "senha-errada",
+                      "newPassword": "12345678"
+                    }
+                    """))
+            .andExpect(status().isUnauthorized())
+            .andExpect(jsonPath("$.message").value("Senha atual invalida"));
+    }
+
+    @Test
+    void alterarSenhaRejeitaSenhaNovaIgualAtual() throws Exception {
+        UsuarioTeste usuario = registrar("Usuario Senha", "senha@example.com", "12345678");
+
+        mockMvc.perform(put("/api/users/me/password")
+                .header("Authorization", usuario.cabecalhoAutorizacao())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("""
+                    {
+                      "currentPassword": "12345678",
+                      "newPassword": "12345678"
+                    }
+                    """))
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.message").value("Nova senha nao pode ser igual a senha atual"));
+    }
+
+    @Test
+    void alterarSenhaValidaTamanhoMinimoDaSenhaNova() throws Exception {
+        UsuarioTeste usuario = registrarUsuarioUnico();
+
+        mockMvc.perform(put("/api/users/me/password")
+                .header("Authorization", usuario.cabecalhoAutorizacao())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("""
+                    {
+                      "currentPassword": "123456",
+                      "newPassword": "1234567"
+                    }
+                    """))
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.fields.newPassword").value("Nova senha deve ter pelo menos 8 caracteres"));
     }
 }
