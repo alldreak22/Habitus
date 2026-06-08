@@ -944,12 +944,14 @@ h5 {
 }
 
 .calendar-day {
-  position: relative;
-  min-height: 96px;
+  display: grid;
+  grid-template-rows: auto minmax(34px, 1fr) auto;
+  gap: 6px;
+  min-height: 108px;
   border: 0;
   color: var(--text-primary);
   background: var(--surface);
-  padding: 14px;
+  padding: 10px 12px;
   text-align: left;
 }
 
@@ -978,14 +980,37 @@ h5 {
   background: var(--on-primary);
 }
 
+.calendar-day-top,
+.calendar-day-status,
+.calendar-day-middle,
+.calendar-day-footer {
+  min-width: 0;
+}
+
+.calendar-day-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 4px;
+}
+
+.calendar-day-status {
+  display: flex;
+  min-height: 18px;
+  flex: 0 1 auto;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 4px;
+}
+
 .calendar-day-number {
+  flex: 0 0 auto;
   font-weight: 600;
+  line-height: 1.2;
 }
 
 .today-badge {
-  position: absolute;
-  top: 8px;
-  right: 8px;
+  flex: 0 0 auto;
   border-radius: 999px;
   padding: 3px 8px;
   color: var(--on-primary);
@@ -997,9 +1022,7 @@ h5 {
 }
 
 .completion-icon {
-  position: absolute;
-  top: 8px;
-  right: 8px;
+  flex: 0 0 auto;
   font-size: 18px;
   font-variation-settings:
     "FILL" 1,
@@ -1008,20 +1031,24 @@ h5 {
     "opsz" 20;
 }
 
-.calendar-day.today.completed .today-badge {
-  right: 34px;
+.calendar-day-middle {
+  display: flex;
+  align-items: center;
+}
+
+.calendar-day-footer {
+  display: flex;
+  min-height: 14px;
+  align-items: flex-end;
+  justify-content: center;
 }
 
 .day-markers {
-  position: absolute;
-  bottom: 16px;
-  left: 50%;
   display: flex;
-  max-width: calc(100% - 16px);
+  max-width: 100%;
   flex-wrap: wrap;
   gap: 4px;
   justify-content: center;
-  transform: translateX(-50%);
 }
 
 .day-marker {
@@ -1031,9 +1058,61 @@ h5 {
   background: var(--primary);
 }
 
+.day-time-markers {
+  display: flex;
+  width: 100%;
+  min-width: 0;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+}
+
+.day-time-marker {
+  display: inline-flex;
+  min-width: 0;
+  max-width: 100%;
+  height: 14px;
+  align-items: center;
+  gap: 3px;
+  overflow: hidden;
+  justify-content: flex-start;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 0.58rem;
+  font-weight: 700;
+  line-height: 1;
+  padding: 0 3px;
+  white-space: nowrap;
+}
+
+.day-time-dot {
+  width: 4px;
+  height: 4px;
+  flex: 0 0 4px;
+  border-radius: 999px;
+}
+
+.day-time-value {
+  min-width: 0;
+}
+
+.day-time-more {
+  color: var(--text-secondary);
+}
+
+.day-time-overflow {
+  color: var(--text-secondary);
+}
+
 .calendar-day.selected .day-marker {
   background: color-mix(in srgb, var(--on-primary) 72%, transparent);
   outline: 1px solid color-mix(in srgb, var(--on-primary) 64%, transparent);
+}
+
+.calendar-day.selected .day-time-marker,
+.calendar-day.selected .day-time-more,
+.calendar-day.selected .day-time-overflow {
+  color: color-mix(in srgb, var(--on-primary) 82%, transparent);
 }
 
 .day-marker.red {
@@ -1216,6 +1295,13 @@ h5 {
   background: transparent;
   padding: 0;
   text-align: left;
+}
+
+.day-habit-main {
+  display: grid;
+  min-width: 0;
+  flex: 1;
+  gap: 8px;
 }
 
 .day-habit-name {
@@ -1412,6 +1498,47 @@ h5 {
 .habit-summary-copy p {
   margin-bottom: 0;
   font-size: 0.88rem;
+}
+
+.habit-time-toggle-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.habit-time-toggle {
+  display: inline-flex;
+  height: 28px;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  color: var(--text-secondary);
+  background: var(--surface);
+  font-size: 0.78rem;
+  font-weight: 700;
+  line-height: 1;
+  padding: 0 10px;
+}
+
+.habit-time-toggle:hover {
+  border-color: var(--primary-border-soft);
+  color: var(--primary);
+  background: var(--primary-bg-soft);
+}
+
+.habit-time-toggle.done {
+  border-color: color-mix(in srgb, var(--success) 30%, transparent);
+  color: var(--success);
+  background: color-mix(in srgb, var(--success) 10%, var(--surface));
+}
+
+.habit-time-dot {
+  width: 7px;
+  height: 7px;
+  flex: 0 0 7px;
+  border-radius: 999px;
 }
 
 .habit-status-button {
@@ -3604,15 +3731,14 @@ h5 {
   }
 
   .calendar-day {
-    min-height: 72px;
+    min-height: 104px;
     padding: 8px;
   }
 
   .today-badge {
-    position: static;
-    display: block;
+    display: inline-flex;
     width: max-content;
-    margin-top: 8px;
+    padding-inline: 6px;
   }
 
   .habits-header {

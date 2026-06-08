@@ -10,6 +10,7 @@ import habitFormContent from '../content/habitFormContent.json';
 import {
   getCalendarDay,
   getCalendarMonth,
+  isHabitCompleted,
   mapCalendarActivity,
   mapCalendarDays,
   mapDayToActivity,
@@ -114,18 +115,14 @@ export default function CalendarPage() {
 
   function updateActivityFromSummary(date, nextSummary) {
     const selectedDateKey = formatDateKey(date);
-    const allCompleted = nextSummary.length > 0 && nextSummary.every((habit) => habit.completed);
+    const allCompleted = nextSummary.length > 0 && nextSummary.every(isHabitCompleted);
 
     setActivityByDate((currentActivity) => ({
       ...currentActivity,
       [selectedDateKey]: {
         ...(currentActivity[selectedDateKey] ?? {}),
         completed: allCompleted,
-        markers: nextSummary.map((habit) => ({
-          color: habit.color,
-          id: habit.id,
-          name: habit.name,
-        })),
+        markers: buildActivityMarkers(nextSummary),
       },
     }));
   }
@@ -164,15 +161,39 @@ export default function CalendarPage() {
     }
   }
 
-  function handleToggleDaySummary(habitId) {
-    setSelectedDaySummary((currentSummary) => {
-      const nextSummary = currentSummary.map((habit) =>
-        habit.id === habitId ? { ...habit, completed: !habit.completed } : habit,
-      );
+  async function handleToggleDaySummary(habitId, time = null) {
+    const selectedDateKey = formatDateKey(selectedDate);
+    const nextSummary = selectedDaySummary.map((habit) =>
+      habit.id === habitId ? toggleHabitCompletion(habit, time) : habit,
+    );
 
-      updateActivityFromSummary(selectedDate, nextSummary);
-      return nextSummary;
-    });
+    setSelectedDaySummary(nextSummary);
+    updateActivityFromSummary(selectedDate, nextSummary);
+
+    try {
+      const savedDay = await saveDayEntry({
+        dateKey: selectedDateKey,
+        description: dayDescriptions[selectedDateKey] ?? '',
+        habits: nextSummary,
+      });
+      setDaysByDate((currentDays) => ({
+        ...currentDays,
+        [selectedDateKey]: savedDay,
+      }));
+      setSelectedDaySummary(savedDay.habits ?? []);
+      setActivityByDate((currentActivity) => ({
+        ...currentActivity,
+        [selectedDateKey]: mapDayToActivity(savedDay),
+      }));
+    } catch (error) {
+      showToast({ message: error.message || 'Nao foi possivel salvar o resumo do dia.', type: 'warning' });
+      const day = daysByDate[selectedDateKey] ?? await getCalendarDay(selectedDateKey);
+      setSelectedDaySummary(day?.habits ?? []);
+      setActivityByDate((currentActivity) => ({
+        ...currentActivity,
+        [selectedDateKey]: mapDayToActivity(day),
+      }));
+    }
   }
 
   if (isEditingDay) {
@@ -233,4 +254,46 @@ export default function CalendarPage() {
       </main>
     </>
   );
+}
+
+function toggleHabitCompletion(habit, time = null) {
+  if (!time) {
+    return { ...habit, completed: !habit.completed };
+  }
+
+  const timeSlots = (habit.timeSlots ?? []).map((timeSlot) =>
+    timeSlot.time === time ? { ...timeSlot, completed: !timeSlot.completed } : timeSlot,
+  );
+
+  return {
+    ...habit,
+    completed: timeSlots.length > 0 && timeSlots.every((timeSlot) => timeSlot.completed),
+    timeSlots,
+  };
+}
+
+function buildActivityMarkers(habits) {
+  return habits.flatMap((habit) => {
+    if (habit.timeSlots?.length) {
+      return habit.timeSlots
+        .map((timeSlot) => ({
+          color: habit.color,
+          completed: Boolean(timeSlot.completed),
+          habitId: habit.id,
+          id: `${habit.id}-${timeSlot.time}`,
+          name: habit.name,
+          time: timeSlot.time,
+        }))
+        .sort((first, second) => first.time.localeCompare(second.time));
+    }
+
+    return [{
+      color: habit.color,
+      completed: Boolean(habit.completed),
+      habitId: habit.id,
+      id: String(habit.id),
+      name: habit.name,
+      time: null,
+    }];
+  });
 }

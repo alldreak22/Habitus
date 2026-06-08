@@ -25,6 +25,8 @@ export default function DaySummary({ date, habits, onToggleHabit, onViewDetails 
 }
 
 function HabitSummaryItem({ habit, onToggleHabit }) {
+  const hasTimeSlots = Boolean(habit.timeSlots?.length);
+
   return (
     <article className={habit.completed ? 'habit-summary-item' : 'habit-summary-item pending'}>
       <div
@@ -45,20 +47,43 @@ function HabitSummaryItem({ habit, onToggleHabit }) {
       <div className="habit-summary-copy">
         <h5>{habit.name}</h5>
         <p>{habit.detail}</p>
+        {hasTimeSlots ? (
+          <div className="habit-time-toggle-list" aria-label={`Horários de ${habit.name}`}>
+            {habit.timeSlots.map((timeSlot) => (
+              <button
+                key={timeSlot.time}
+                className={timeSlot.completed ? 'habit-time-toggle done' : 'habit-time-toggle'}
+                type="button"
+                onClick={() => onToggleHabit?.(habit.id, timeSlot.time)}
+                aria-pressed={timeSlot.completed}
+                aria-label={
+                  timeSlot.completed
+                    ? `Marcar ${habit.name} às ${timeSlot.time} como pendente`
+                    : `Marcar ${habit.name} às ${timeSlot.time} como concluído`
+                }
+              >
+                <span className="habit-time-dot" style={{ backgroundColor: habit.color }} aria-hidden="true" />
+                {timeSlot.time}
+              </button>
+            ))}
+          </div>
+        ) : null}
       </div>
-      <button
-        className={`habit-status-button ${habit.completed ? 'done' : ''}`}
-        type="button"
-        onClick={() => onToggleHabit?.(habit.id)}
-        aria-pressed={habit.completed}
-        aria-label={
-          habit.completed ? `Marcar ${habit.name} como pendente` : `Marcar ${habit.name} como concluído`
-        }
-      >
-        <span className="material-symbols-outlined" aria-hidden="true">
-          {habit.completed ? 'check_circle' : 'radio_button_unchecked'}
-        </span>
-      </button>
+      {!hasTimeSlots ? (
+        <button
+          className={`habit-status-button ${habit.completed ? 'done' : ''}`}
+          type="button"
+          onClick={() => onToggleHabit?.(habit.id)}
+          aria-pressed={habit.completed}
+          aria-label={
+            habit.completed ? `Marcar ${habit.name} como pendente` : `Marcar ${habit.name} como concluído`
+          }
+        >
+          <span className="material-symbols-outlined" aria-hidden="true">
+            {habit.completed ? 'check_circle' : 'radio_button_unchecked'}
+          </span>
+        </button>
+      ) : null}
     </article>
   );
 }

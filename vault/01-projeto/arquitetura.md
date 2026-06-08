@@ -1,16 +1,14 @@
 # Arquitetura
 
-O Habitus e uma aplicacao local de diario de habitos, composta por frontend web, API principal e banco SQLite.
+O Habitus é uma aplicação local de diário de hábitos, composta por frontend web, API principal e banco SQLite.
 
-## Fluxo principal
+## Fluxo Principal
 
 ```txt
 React/Vite -> Spring Boot API -> SQLite
 ```
 
-O frontend renderiza a interface e consome a API HTTP.
-O backend concentra autenticacao, validacoes, regras de negocio e persistencia.
-O SQLite armazena os dados locais da aplicacao.
+O frontend renderiza a interface e consome a API HTTP. O backend concentra autenticação, validações, regras de negócio e persistência. O SQLite armazena os dados locais da aplicação.
 
 ## Frontend
 
@@ -29,29 +27,31 @@ Stack:
 
 Responsabilidades:
 
-- renderizar as telas da aplicacao
-- controlar a navegacao client-side
+- renderizar as telas da aplicação
+- controlar a navegação client-side
 - manter estado de interface
 - consumir a API por HTTP
 - usar `VITE_API_BASE_URL` como URL base da API
 
 Estrutura principal:
 
-- `src/app`: definicao das rotas da aplicacao
+- `src/app`: definição das rotas da aplicação
 - `src/layouts`: layout principal
-- `src/pages`: paginas de calendario, habitos, evolucao, perfil, configuracoes, login e cadastro
-- `src/components`: componentes reutilizaveis de interface
-- `src/services`: camada de acesso a dados e chamadas HTTP
-- `src/content`: conteudos e mocks usados por telas ainda nao integradas
+- `src/pages`: páginas de calendário, hábitos, evolução, perfil, configurações, login, cadastro e recuperação de senha
+- `src/components`: componentes reutilizáveis de interface
+- `src/services`: camada de acesso à API e adaptação de dados
+- `src/content`: textos e opções estáticas de interface
 - `src/styles`: estilos globais
-- `src/utils`: utilitarios locais
+- `src/utils`: utilitários locais
 
 Estado atual:
 
 - `src/services/api.js` centraliza chamadas para a API
-- `src/services/calendarService.js`, `habitService.js` e `profileService.js` organizam acesso a dados das telas
-- algumas telas ainda usam dados mockados em `src/content`
-- login e cadastro existem como rotas e paginas, mas o fluxo completo de autenticacao no frontend ainda nao esta consolidado
+- `authService.js`, `calendarService.js`, `habitService.js` e `profileService.js` organizam acesso aos dados reais
+- login, cadastro, hábitos, calendário e perfil estão integrados com a API
+- configurações simples seguem locais no frontend
+- `/recuperar-senha` existe como tela, mas ainda não tem fluxo real com backend
+- a tela de evolução deve receber métricas futuras do serviço/API C#
 
 ## Backend
 
@@ -76,30 +76,30 @@ Stack:
 Responsabilidades:
 
 - expor a API REST sob `/api`
-- cadastrar e autenticar usuarios
-- resolver o usuario autenticado a partir do token bearer
+- cadastrar e autenticar usuários
+- resolver o usuário autenticado a partir do token bearer
 - validar entradas recebidas
-- aplicar regras de negocio
-- isolar dados por usuario autenticado
+- aplicar regras de negócio
+- isolar dados por usuário autenticado
 - persistir dados no SQLite via JPA
 - converter entidades internas para DTOs de resposta
 - tratar erros da API de forma centralizada
 
 Estrutura principal:
 
-- `config`: configuracoes da aplicacao, CORS, senha e informacoes de versao
+- `config`: configurações da aplicação, CORS, senha e informações de versão
 - `controller`: endpoints REST
 - `dto/request`: contratos de entrada
-- `dto/response`: contratos de saida
+- `dto/response`: contratos de saída
 - `entity`: entidades persistidas
-- `exception`: excecoes e tratamento global de erros
-- `mapper`: conversao entre entidades e DTOs
+- `exception`: exceções e tratamento global de erros
+- `mapper`: conversão entre entidades e DTOs
 - `repository`: acesso ao banco via Spring Data JPA
-- `service`: regras de negocio, autenticacao e transacoes
+- `service`: regras de negócio, autenticação e transações
 
-## Autenticacao
+## Autenticação
 
-A autenticacao atual e local e simples.
+A autenticação atual é local e simples.
 
 Fluxo:
 
@@ -107,27 +107,28 @@ Fluxo:
 nick ou email/senha -> API -> token bearer -> chamadas protegidas
 ```
 
-Caracteristicas:
+Características:
 
-- senhas sao armazenadas com BCrypt
-- o token e gerado a partir do id do usuario
-- o token e codificado em Base64 URL-safe
+- senhas são armazenadas com BCrypt
+- o token é gerado a partir do id do usuário
+- o token é codificado em Base64 URL-safe
 - chamadas protegidas usam `Authorization: Bearer <token>`
-- o usuario atual e resolvido no backend pelo `CurrentUserService`
+- o usuário atual é resolvido no backend pelo `CurrentUserService`
 
-Nao ha JWT assinado, provedor externo de identidade ou sessao server-side.
+Não há JWT assinado, provedor externo de identidade ou sessão server-side. Também não há endpoint de recuperação de senha implementado.
 
-## Dominio
+## Domínio
 
-O dominio atual cobre:
+O domínio atual cobre:
 
-- usuarios
-- habitos
-- dias de frequencia dos habitos
-- horarios de lembrete dos habitos
-- entradas diarias
-- habitos planejados para uma entrada diaria
-- habitos concluidos em uma entrada diaria
+- usuários
+- hábitos
+- dias de frequência dos hábitos
+- horários de lembrete dos hábitos
+- entradas diárias do calendário
+- hábitos planejados para uma entrada diária
+- hábitos concluídos em uma entrada diária
+- horários concluídos de hábitos planejados em uma entrada diária
 
 Entidades principais:
 
@@ -137,30 +138,32 @@ Entidades principais:
 - `HabitReminderTime`
 - `DailyEntry`
 - `DailyHabitPlan`
-- `DailyHabitCompletion`
+- `DailyHabitTimeCompletion`
 
 Regras principais:
 
-- cadastro e login de usuarios
-- normalizacao de email
-- geracao de nick unico
-- criacao, listagem, busca, atualizacao e desativacao de habitos
-- validacao de frequencia, status, dias da semana e horarios
-- criacao, busca por data e atualizacao de entradas diarias
-- planejamento e remocao de habitos em entradas diarias
-- criacao, listagem e atualizacao de conclusoes de habitos
+- cadastro e login de usuários
+- atualização de perfil, foto e senha
+- normalização de email
+- geração de nick único
+- criação, listagem, busca, atualização e exclusão de hábitos
+- validação de frequência, status, dias da semana e horários
+- calendário mensal agregado
+- resumo pontual por dia
+- edição manual de dias do calendário
+- criação e atualização de conclusões por hábito e por horário
 
 ## API
 
 A API principal roda no backend Spring Boot e usa `/api` como base.
 
-Areas expostas:
+Áreas expostas:
 
-- autenticacao
-- usuario atual
-- versao da aplicacao
-- habitos
-- calendario agregado por mes e por dia
+- autenticação
+- usuário atual
+- versão da aplicação
+- hábitos
+- calendário agregado por mês e por dia
 
 O CORS permite chamadas locais a partir de:
 
@@ -181,41 +184,41 @@ Banco:
 SQLite
 ```
 
-Local padrao:
+Local padrão:
 
 ```txt
 backend/habitus-api/data/habitus.db
 ```
 
-Configuracao:
+Configuração:
 
 - datasource definido em `backend/habitus-api/src/main/resources/application.yml`
-- URL padrao: `jdbc:sqlite:data/habitus.db`
-- driver padrao: `org.sqlite.JDBC`
-- dialeto padrao: `org.hibernate.community.dialect.SQLiteDialect`
+- URL padrão: `jdbc:sqlite:data/habitus.db`
+- driver padrão: `org.sqlite.JDBC`
+- dialeto padrão: `org.hibernate.community.dialect.SQLiteDialect`
 - schema atualizado pelo Hibernate com `ddl-auto=update`
 
-O banco e acessado apenas pelo backend no fluxo principal.
+O banco é acessado apenas pelo backend no fluxo principal.
 
-## Configuracao
+## Configuração
 
 Backend:
 
 - `.env` opcional em `backend/habitus-api`
-- porta padrao `8080`
-- nome padrao `habitus-api`
-- nome de exibicao padrao `Habitus`
-- versao padrao `1.0.1`
+- porta padrão `8080`
+- nome padrão `habitus-api`
+- nome de exibição padrão `Habitus`
+- versão padrão `1.0.1`
 
 Frontend:
 
 - `.env` opcional em `frontend/habitus-web`
 - `VITE_API_BASE_URL` define a base da API
-- valor padrao no codigo: `http://localhost:8080/api`
+- valor padrão no código: `http://localhost:8080/api`
 
-## Servico de estatisticas
+## Serviço de Estatísticas
 
-Local:
+Local planejado:
 
 ```txt
 services/habitus-stats
@@ -223,9 +226,10 @@ services/habitus-stats
 
 Estado atual:
 
-- diretorio reservado
-- sem implementacao versionada
-- nao faz parte do fluxo principal atual
+- diretório reservado
+- implementação futura em C#
+- deve concentrar relatórios, cálculos e métricas para consumo do frontend
+- não faz parte do fluxo principal atual
 
 ## Scripts
 
@@ -238,14 +242,15 @@ scripts
 Uso atual:
 
 - artefatos auxiliares
-- referencia de schema SQL
-- tarefas fora do fluxo principal da aplicacao
+- referência de schema SQL
+- reset e seed local de desenvolvimento
+- consultas SQLite locais via utilitário Python
 
-Scripts nao fazem parte do caminho principal entre frontend, backend e banco.
+Scripts não fazem parte do caminho principal entre frontend, backend e banco.
 
-## Limite arquitetural
+## Limite Arquitetural Atual
 
-A arquitetura atual deve permanecer simples:
+A arquitetura atual permanece simples:
 
 ```txt
 Frontend React/Vite
@@ -257,4 +262,4 @@ API Spring Boot
 SQLite local
 ```
 
-Nao ha Docker, filas, mensageria, gateway, banco remoto, microsservicos ativos ou camada de estatisticas ativa no fluxo principal.
+Não há Docker, filas, mensageria, gateway, banco remoto, microsserviços ativos ou camada de estatísticas ativa no fluxo principal.

@@ -72,10 +72,10 @@ export default function DayEditor({
     event.target.value = '';
   }
 
-  function togglePlannedHabit(habitId) {
+  function togglePlannedHabit(habitId, time = null) {
     setPlannedHabits((currentHabits) =>
       currentHabits.map((habit) =>
-        habit.id === habitId ? { ...habit, completed: !habit.completed } : habit,
+        habit.id === habitId ? toggleHabitCompletion(habit, time) : habit,
       ),
     );
   }
@@ -92,6 +92,7 @@ export default function DayEditor({
         ...habit,
         completed: false,
         detail: habit.description,
+        timeSlots: buildTimeSlots(habit),
       }));
 
     setPlannedHabits((currentHabits) => [...currentHabits, ...habitsToAdd]);
@@ -175,35 +176,61 @@ export default function DayEditor({
               <IconButton icon="add" label="Adicionar hábito ao dia" onClick={() => setIsAddHabitOpen(true)} />
             </header>
             <div className="day-habits-list">
-              {plannedHabits.map((habit) => (
-                <div
-                  key={habit.id}
-                  className={habit.completed ? 'day-habit-item completed' : 'day-habit-item'}
-                >
-                  <button
-                    className="day-habit-toggle"
-                    type="button"
-                    onClick={() => togglePlannedHabit(habit.id)}
-                    aria-pressed={habit.completed}
+              {plannedHabits.map((habit) => {
+                const hasTimeSlots = Boolean(habit.timeSlots?.length);
+
+                return (
+                  <div
+                    key={habit.id}
+                    className={habit.completed ? 'day-habit-item completed' : 'day-habit-item'}
                   >
-                    <span
-                      className="habit-icon"
-                      style={{ backgroundColor: `${habit.color}1f`, color: habit.color }}
-                      aria-hidden="true"
-                    >
-                      <span className="material-symbols-outlined">
-                        {habit.completed ? 'check' : habit.icon}
-                      </span>
-                    </span>
-                    <span className="day-habit-name">{habit.name}</span>
-                  </button>
-                  <IconButton
-                    icon="close"
-                    label={`Remover ${habit.name} deste dia`}
-                    onClick={() => removePlannedHabit(habit.id)}
-                  />
-                </div>
-              ))}
+                    <div className="day-habit-main">
+                      <button
+                        className="day-habit-toggle"
+                        type="button"
+                        onClick={() => !hasTimeSlots && togglePlannedHabit(habit.id)}
+                        aria-pressed={habit.completed}
+                      >
+                        <span
+                          className="habit-icon"
+                          style={{ backgroundColor: `${habit.color}1f`, color: habit.color }}
+                          aria-hidden="true"
+                        >
+                          <span className="material-symbols-outlined">
+                            {habit.completed ? 'check' : habit.icon}
+                          </span>
+                        </span>
+                        <span className="day-habit-name">{habit.name}</span>
+                      </button>
+                      {hasTimeSlots ? (
+                        <div className="habit-time-toggle-list" aria-label={`Horários de ${habit.name}`}>
+                          {habit.timeSlots.map((timeSlot) => (
+                            <button
+                              key={timeSlot.time}
+                              className={timeSlot.completed ? 'habit-time-toggle done' : 'habit-time-toggle'}
+                              type="button"
+                              onClick={() => togglePlannedHabit(habit.id, timeSlot.time)}
+                              aria-pressed={timeSlot.completed}
+                            >
+                              <span
+                                className="habit-time-dot"
+                                style={{ backgroundColor: habit.color }}
+                                aria-hidden="true"
+                              />
+                              {timeSlot.time}
+                            </button>
+                          ))}
+                        </div>
+                      ) : null}
+                    </div>
+                    <IconButton
+                      icon="close"
+                      label={`Remover ${habit.name} deste dia`}
+                      onClick={() => removePlannedHabit(habit.id)}
+                    />
+                  </div>
+                );
+              })}
             </div>
             <button className="add-day-habit-button" type="button" onClick={() => setIsAddHabitOpen(true)}>
               <span className="material-symbols-outlined" aria-hidden="true">
@@ -226,4 +253,34 @@ export default function DayEditor({
       ) : null}
     </>
   );
+}
+
+function toggleHabitCompletion(habit, time = null) {
+  if (!time) {
+    return { ...habit, completed: !habit.completed };
+  }
+
+  const timeSlots = (habit.timeSlots ?? []).map((timeSlot) =>
+    timeSlot.time === time ? { ...timeSlot, completed: !timeSlot.completed } : timeSlot,
+  );
+
+  return {
+    ...habit,
+    completed: timeSlots.length > 0 && timeSlots.every((timeSlot) => timeSlot.completed),
+    timeSlots,
+  };
+}
+
+function buildTimeSlots(habit) {
+  const times = Array.isArray(habit.reminderTimes)
+    ? habit.reminderTimes
+    : String(habit.suggestedTimes ?? '')
+        .split(',')
+        .map((time) => time.trim())
+        .filter(Boolean);
+
+  return [...new Set(times)].sort().map((time) => ({
+    time,
+    completed: false,
+  }));
 }

@@ -1,20 +1,18 @@
 # Resumo
 
-O Habitus e uma aplicacao local de diario de habitos.
+O Habitus é uma aplicação local de diário de hábitos.
 
-A ideia central e juntar acompanhamento de habitos com registro diario.
+A ideia central é juntar cadastro de hábitos, acompanhamento em calendário e registro de conclusões por dia.
 
-## Fluxo principal
+## Fluxo Principal
 
 ```txt
 React/Vite -> Spring Boot API -> SQLite
 ```
 
-O frontend apresenta as telas da aplicacao.
-O backend concentra autenticacao, regras de negocio e persistencia.
-O SQLite armazena os dados locais.
+O frontend apresenta as telas da aplicação. O backend concentra autenticação, regras de negócio e persistência. O SQLite armazena os dados locais.
 
-## Stack atual
+## Stack Atual
 
 Frontend:
 
@@ -30,25 +28,30 @@ Backend:
 - Maven
 - SQLite
 
-## Estrutura principal
+Serviço futuro:
 
-- `frontend/habitus-web`: aplicacao web
+- C# em `services/habitus-stats`
+
+## Estrutura Principal
+
+- `frontend/habitus-web`: aplicação web
 - `backend/habitus-api`: API principal
-- `services/habitus-stats`: espaco reservado para servico futuro de estatisticas, relatorios e calculos gerais
+- `services/habitus-stats`: espaço reservado para serviço futuro de estatísticas, relatórios e cálculos
 - `scripts`: scripts auxiliares
-- `vault`: documentacao e controle do projeto
+- `vault`: documentação e controle do projeto
 
-## Estado atual
+## Estado Atual
 
-- a API principal ja possui endpoints para autenticacao, usuario atual, versao, habitos, entradas diarias, habitos planejados e habitos concluidos
-- o frontend ja possui telas principais, cliente HTTP base e services organizados
-- parte do frontend ainda usa mocks e `localStorage`
-- a integracao completa entre frontend e API ainda nao esta finalizada
-- o fluxo completo de login/autenticacao no frontend ainda nao esta finalizado
-- o servico de estatisticas ainda nao foi implementado
-- os scripts ainda sao auxiliares e nao fazem parte do fluxo principal
+- a API principal possui endpoints para autenticação, usuário atual, versão, hábitos e calendário agregado
+- o frontend possui telas principais e services integrados com a API
+- o fluxo de login/cadastro usa API real e token bearer simples
+- calendário, hábitos e perfil usam dados reais da API
+- a tela `/recuperar-senha` existe, mas ainda não possui fluxo real com backend
+- a tela de evolução ainda deve receber métricas futuras
+- o serviço C# de estatísticas ainda não foi implementado
+- scripts são auxiliares e não fazem parte do fluxo principal
 
-## Documentos principais
+## Documentos Principais
 
 - `vault/01-projeto/arquitetura.md`
 - `vault/01-projeto/endpoints.md`

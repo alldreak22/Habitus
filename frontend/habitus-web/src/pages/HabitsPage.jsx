@@ -180,10 +180,10 @@ export default function HabitsPage() {
     }
   }
 
-  function handleToggleTodaySummary(habitId) {
+  function handleToggleTodaySummary(habitId, time = null) {
     setTodaySummary((currentSummary) =>
       currentSummary.map((habit) =>
-        habit.id === habitId ? { ...habit, completed: !habit.completed } : habit,
+        habit.id === habitId ? toggleSummaryHabit(habit, time) : habit,
       ),
     );
   }
@@ -801,4 +801,20 @@ function HabitsSidePanel({ date, onToggleHabit, onViewDetails, summary }) {
       <TipCard icon="auto_awesome" items={productivityTips} title="Dica de Produtividade" />
     </aside>
   );
+}
+
+function toggleSummaryHabit(habit, time = null) {
+  if (!time) {
+    return { ...habit, completed: !habit.completed };
+  }
+
+  const timeSlots = (habit.timeSlots ?? []).map((timeSlot) =>
+    timeSlot.time === time ? { ...timeSlot, completed: !timeSlot.completed } : timeSlot,
+  );
+
+  return {
+    ...habit,
+    completed: timeSlots.length > 0 && timeSlots.every((timeSlot) => timeSlot.completed),
+    timeSlots,
+  };
 }

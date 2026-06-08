@@ -19,6 +19,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.habitus.api.repository.DailyEntryRepository;
 import com.habitus.api.repository.DailyHabitCompletionRepository;
 import com.habitus.api.repository.DailyHabitPlanRepository;
+import com.habitus.api.repository.DailyHabitTimeCompletionRepository;
 import com.habitus.api.repository.HabitRepository;
 import com.habitus.api.repository.UserRepository;
 
@@ -49,6 +50,9 @@ abstract class BaseApiIntegrationTest {
     private DailyHabitPlanRepository planRepository;
 
     @Autowired
+    private DailyHabitTimeCompletionRepository timeCompletionRepository;
+
+    @Autowired
     private DailyEntryRepository dailyEntryRepository;
 
     @Autowired
@@ -64,6 +68,7 @@ abstract class BaseApiIntegrationTest {
 
     @BeforeEach
     void limparBanco() {
+        timeCompletionRepository.deleteAll();
         completionRepository.deleteAll();
         planRepository.deleteAll();
         dailyEntryRepository.deleteAll();

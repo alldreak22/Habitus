@@ -1,5 +1,4 @@
 # Tarefas futuras
 
-- Criar o servico `services/habitus-stats` em C# para relatorios e calculos gerais.
-- Definir quais dados o servico C# de estatisticas deve receber da API principal.
-- Organizar scripts auxiliares para tarefas locais sem entrar no fluxo principal da aplicacao.
+- Implementar fluxo real de recuperação de senha para a tela `/recuperar-senha`.
+- Criar o serviço/API C# em `services/habitus-stats` para relatórios, cálculos e métricas consumidas pelo frontend.

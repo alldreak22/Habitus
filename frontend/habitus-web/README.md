@@ -1,13 +1,13 @@
 # Habitus Web
 
-Front-end web do Habitus, implementado com React 19, React Router 7 e Vite 7.
+Frontend web do Habitus, implementado com React 19, React Router 7, Vite 7 e JavaScript.
 
 ## Requisitos
 
 - Node.js compatível com Vite 7.
 - npm.
 
-## Rodando localmente
+## Rodando Localmente
 
 ```bash
 npm install
@@ -38,13 +38,14 @@ npm run preview  # preview local do build
 
 - `/login`
 - `/cadastro`
+- `/recuperar-senha`
 - `/calendario`
 - `/habitos`
 - `/evolucao`
 - `/perfil`
 - `/configuracoes`
 
-A rota raiz redireciona para `/calendario`.
+A rota raiz e rotas desconhecidas redirecionam para `/login`.
 
 ## Estrutura
 
@@ -57,23 +58,23 @@ src/
     layout/     Sidebar e topo
     profile/    Componentes ligados ao usuário
     settings/   Componentes de configurações
-  content/      Conteúdo e dados mockados no formato esperado pela UI
+  content/      Textos e opções estáticas de interface
   layouts/      Estruturas comuns de tela
   pages/        Telas da aplicação
-  services/     Integrações externas e adaptação de dados
+  services/     Integrações com a API e adaptação de dados
   styles/       Estilos globais e tokens visuais
   utils/        Funções utilitárias
 ```
 
-## Estado atual da integração
+## Estado Atual da Integração
 
-- `src/services/api.js` já centraliza a base para chamadas HTTP reais.
-- `calendarService.js`, `habitService.js` e `profileService.js` ainda usam dados locais em `src/content` ou `localStorage`.
-- A tela de calendário está componentizada em `src/components/calendar` e montada por `src/pages/CalendarPage.jsx`.
-- O perfil persiste alterações locais via `localStorage`, usando a chave `habitus-profile-overview`.
+- `src/services/api.js` centraliza chamadas HTTP e token bearer.
+- `authService.js` integra login, cadastro, usuário atual e atualização de senha.
+- `habitService.js` usa endpoints reais de hábitos.
+- `calendarService.js` usa endpoints agregados de mês e dia.
+- `profileService.js` usa endpoints reais de perfil e mantém cache local apenas para token, usuário e configurações simples.
 
-## Próximos pontos naturais
+## Observações
 
-- Substituir os mocks de hábitos e calendário por chamadas reais à API.
-- Definir autenticação no front após login/cadastro e anexar `Authorization: Bearer <token>` nas chamadas protegidas.
-- Alinhar o contrato visual de hábitos do front com os campos aceitos pela API (`title`, `icon`, `color`, `frequencyType`, `reminderTimes` e `frequencyDays`).
+- A tela `/recuperar-senha` existe visualmente, mas ainda não tem fluxo real com backend.
+- A tela de evolução ainda deve receber métricas quando o serviço/API C# de estatísticas for implementado.

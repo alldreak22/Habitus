@@ -1,10 +1,8 @@
 package com.habitus.api.entity;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
+import java.time.LocalTime;
 
-import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -13,11 +11,9 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToMany;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
-import jakarta.persistence.Transient;
 import jakarta.persistence.UniqueConstraint;
 import lombok.Getter;
 import lombok.Setter;
@@ -26,31 +22,24 @@ import lombok.Setter;
 @Setter
 @Entity
 @Table(
-    name = "day_entry_habits",
-    uniqueConstraints = @UniqueConstraint(columnNames = {"day_entry_id", "habit_id"})
+    name = "day_entry_habit_time_completions",
+    uniqueConstraints = @UniqueConstraint(columnNames = {"day_entry_habit_id", "completion_time"})
 )
-public class DailyHabitPlan {
+public class DailyHabitTimeCompletion {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "day_entry_id", nullable = false)
-    private DailyEntry dailyEntry;
+    @JoinColumn(name = "day_entry_habit_id", nullable = false)
+    private DailyHabitPlan dailyHabitPlan;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "habit_id", nullable = false)
-    private Habit habit;
-
-    @Column(name = "override_action")
-    private String overrideAction;
+    @Column(name = "completion_time", nullable = false)
+    private LocalTime completionTime;
 
     @Column(nullable = false)
     private Boolean completed = false;
-
-    @OneToMany(mappedBy = "dailyHabitPlan", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<DailyHabitTimeCompletion> timeCompletions = new ArrayList<>();
 
     private LocalDateTime completedAt;
 
@@ -64,22 +53,21 @@ public class DailyHabitPlan {
         LocalDateTime now = LocalDateTime.now();
         createdAt = now;
         updatedAt = now;
-        if (completed == null) {
-            completed = false;
-        }
+        updateCompletedAt();
     }
 
     @PreUpdate
     void preUpdate() {
         updatedAt = LocalDateTime.now();
+        updateCompletedAt();
     }
 
-    @Transient
-    public Boolean getPlanned() {
-        return !"DESELECTED".equals(overrideAction);
-    }
-
-    public void setPlanned(Boolean planned) {
-        overrideAction = Boolean.FALSE.equals(planned) ? "DESELECTED" : "SELECTED";
+    private void updateCompletedAt() {
+        if (Boolean.TRUE.equals(completed) && completedAt == null) {
+            completedAt = LocalDateTime.now();
+        }
+        if (!Boolean.TRUE.equals(completed)) {
+            completedAt = null;
+        }
     }
 }

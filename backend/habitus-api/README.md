@@ -5,11 +5,11 @@ API principal do Habitus, implementada em Java 21 com Spring Boot 3.3, Spring We
 ## Responsabilidades
 
 - Cadastro e login de usuários.
-- Identificação do usuário atual por token simples.
-- CRUD de hábitos.
-- Registro de entradas diárias.
-- Planejamento de hábitos para uma entrada diária.
-- Marcação de hábitos como concluídos.
+- Identificação do usuário atual por token bearer simples.
+- Atualização de perfil, foto e senha.
+- CRUD de hábitos do usuário autenticado.
+- Calendário agregado por mês e por dia.
+- Registro de conclusões de hábitos e horários em dias do calendário.
 - Exposição da versão da aplicação.
 
 ## Requisitos
@@ -40,7 +40,7 @@ backend/habitus-api/data/habitus.db
 
 O diretório `data/` e arquivos `*.db`, `*.sqlite` e `*.sqlite3` não devem ser versionados.
 
-## Como rodar
+## Como Rodar
 
 ```bash
 mvn spring-boot:run
@@ -62,11 +62,11 @@ A versão atual usa um token simples retornado pelo cadastro ou login. Envie ess
 Authorization: Bearer <token>
 ```
 
-Esse formato é temporário e foi pensado para ser substituído por JWT ou outro mecanismo mais robusto.
+Não há JWT assinado, provedor externo de identidade ou sessão server-side.
 
-## Fluxo rápido para Postman/Insomnia
+## Fluxo Rápido para Postman/Insomnia
 
-### Registrar usuário
+Registrar usuário:
 
 ```http
 POST /api/auth/register
@@ -76,11 +76,11 @@ Content-Type: application/json
   "name": "Andre",
   "nick": "andre",
   "email": "andre@example.com",
-  "password": "123456"
+  "password": "12345678"
 }
 ```
 
-### Login
+Login:
 
 ```http
 POST /api/auth/login
@@ -88,18 +88,18 @@ Content-Type: application/json
 
 {
   "login": "andre",
-  "password": "123456"
+  "password": "12345678"
 }
 ```
 
-### Consultar usuário atual
+Consultar usuário atual:
 
 ```http
 GET /api/users/me
 Authorization: Bearer <token>
 ```
 
-### Criar hábito
+Criar hábito:
 
 ```http
 POST /api/habits
@@ -120,80 +120,62 @@ Content-Type: application/json
 }
 ```
 
-Campos aceitos por compatibilidade:
-
-- `name` e `title` representam o nome/título do hábito.
-- `targetFrequency` e `frequencyType` representam a frequência.
-- `suggestedTimes` e `reminderTimes` representam horários sugeridos/lembretes.
-
-### Criar entrada diária
+Carregar calendário mensal:
 
 ```http
-POST /api/daily-entries
+POST /api/calendar/month
 Authorization: Bearer <token>
 Content-Type: application/json
 
 {
-  "entryDate": "2026-05-13",
-  "markdownContent": "## Meu dia\nTexto em Markdown.",
-  "planningNotes": "Priorizar estudo e caminhada."
+  "year": 2026,
+  "month": 6
 }
 ```
 
-### Planejar hábito para o dia
+Salvar edição de um dia:
 
 ```http
-POST /api/daily-entries/1/planned-habits
+PUT /api/calendar/days/2026-06-08
 Authorization: Bearer <token>
 Content-Type: application/json
 
 {
-  "habitId": 1
+  "description": "Dia produtivo.",
+  "habits": [
+    {
+      "habitId": 1,
+      "completed": true,
+      "timeSlots": [
+        { "time": "08:00", "completed": true }
+      ]
+    }
+  ]
 }
 ```
 
-### Marcar hábito como concluído
-
-```http
-POST /api/daily-entries/1/completed-habits
-Authorization: Bearer <token>
-Content-Type: application/json
-
-{
-  "habitId": 1,
-  "completed": true,
-  "notes": "Concluído durante a tarde."
-}
-```
-
-### Consultar entrada por data
-
-```http
-GET /api/daily-entries/date/2026-05-13
-Authorization: Bearer <token>
-```
-
-## Endpoints principais
+## Endpoints Principais
 
 - `GET /api/version`
 - `POST /api/auth/register`
 - `POST /api/auth/login`
 - `GET /api/users/me`
+- `PUT /api/users/me`
+- `PUT /api/users/me/password`
 - `POST /api/habits`
 - `GET /api/habits`
 - `GET /api/habits/{id}`
 - `PUT /api/habits/{id}`
 - `DELETE /api/habits/{id}`
 - `GET /api/habits/{id}/history`
-- `POST /api/daily-entries`
-- `GET /api/daily-entries/date/{date}`
-- `PUT /api/daily-entries/{id}`
-- `POST /api/daily-entries/{entryId}/planned-habits`
-- `GET /api/daily-entries/{entryId}/planned-habits`
-- `DELETE /api/daily-entries/{entryId}/planned-habits/{habitId}`
-- `POST /api/daily-entries/{entryId}/completed-habits`
-- `GET /api/daily-entries/{entryId}/completed-habits`
-- `PUT /api/daily-entries/{entryId}/completed-habits/{habitId}`
+- `POST /api/calendar/month`
+- `GET /api/calendar/days/{date}`
+- `PUT /api/calendar/days/{date}`
+
+## Pendências Conhecidas
+
+- Não há endpoint de recuperação de senha implementado.
+- Relatórios, cálculos e métricas ficam para o futuro serviço/API C# em `services/habitus-stats`.
 
 ## CORS
 

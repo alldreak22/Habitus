@@ -5,6 +5,8 @@ import IconButton from '../IconButton.jsx';
 import SelectDropdown from '../SelectDropdown.jsx';
 
 const { months, weekDays, yearRange } = calendarLabels;
+const MAX_HABIT_TIME_ROWS = 2;
+const MAX_TIMES_PER_ROW = 2;
 
 export default function CalendarGrid({
   activityByDate,
@@ -75,6 +77,11 @@ export default function CalendarGrid({
           {days.map((day) => {
             const dateKey = formatDateKey(day.date);
             const activity = activityByDate[dateKey] ?? {};
+            const timeMarkers = (activity.markers ?? []).filter((marker) => marker.time);
+            const dotMarkers = groupDotMarkers(activity.markers ?? []);
+            const timeRows = groupTimeMarkers(timeMarkers);
+            const visibleTimeRows = timeRows.slice(0, MAX_HABIT_TIME_ROWS);
+            const hiddenTimeRows = Math.max(0, timeRows.length - visibleTimeRows.length);
             const isToday = isSameDay(day.date, today);
             const isSelected = isSameDay(day.date, selectedDate);
             const className = [
@@ -97,24 +104,53 @@ export default function CalendarGrid({
                 aria-pressed={isSelected}
                 aria-label={`Selecionar dia ${day.date.toLocaleDateString('pt-BR')}`}
               >
-                <span className="calendar-day-number">{day.date.getDate()}</span>
-                {isToday && <span className="today-badge">Hoje</span>}
-                {activity.completed ? (
-                  <span className="completion-icon material-symbols-outlined" aria-hidden="true">
-                    check_circle
+                <span className="calendar-day-top">
+                  <span className="calendar-day-number">{day.date.getDate()}</span>
+                  <span className="calendar-day-status">
+                    {isToday && <span className="today-badge">Hoje</span>}
+                    {activity.completed ? (
+                      <span className="completion-icon material-symbols-outlined" aria-hidden="true">
+                        check_circle
+                      </span>
+                    ) : null}
                   </span>
-                ) : null}
-                {activity.markers?.length ? (
-                  <span className="day-markers" aria-hidden="true">
-                    {activity.markers.map((marker) => (
-                      <span
-                        key={marker.id}
-                        className="day-marker"
-                        style={{ backgroundColor: marker.color }}
-                      />
-                    ))}
-                  </span>
-                ) : null}
+                </span>
+                <span className="calendar-day-middle">
+                  {visibleTimeRows.length ? (
+                    <span className="day-time-markers" aria-hidden="true">
+                      {visibleTimeRows.map((row) => {
+                        const visibleTimes = row.times.slice(0, MAX_TIMES_PER_ROW);
+                        const hiddenTimes = row.times.length - visibleTimes.length;
+
+                        return (
+                          <span key={row.id} className="day-time-marker">
+                            <span className="day-time-dot" style={{ backgroundColor: row.color }} />
+                            {visibleTimes.map((time) => (
+                              <span key={time} className="day-time-value">
+                                {time}
+                              </span>
+                            ))}
+                            {hiddenTimes > 0 ? <span className="day-time-more">+{hiddenTimes}</span> : null}
+                          </span>
+                        );
+                      })}
+                      {hiddenTimeRows ? (
+                        <span className="day-time-marker day-time-overflow">
+                          +{hiddenTimeRows}
+                        </span>
+                      ) : null}
+                    </span>
+                  ) : null}
+                </span>
+                <span className="calendar-day-footer">
+                  {dotMarkers.length ? (
+                    <span className="day-markers" aria-hidden="true">
+                      {dotMarkers.map((marker) => (
+                        <span key={marker.id} className="day-marker" style={{ backgroundColor: marker.color }} />
+                      ))}
+                    </span>
+                  ) : null}
+                </span>
               </button>
             );
           })}
@@ -122,4 +158,43 @@ export default function CalendarGrid({
       </div>
     </section>
   );
+}
+
+function groupTimeMarkers(markers) {
+  const rows = new Map();
+
+  markers.forEach((marker) => {
+    const rowKey = String(marker.habitId ?? marker.name ?? marker.id);
+    const currentRow = rows.get(rowKey) ?? {
+      color: marker.color,
+      id: rowKey,
+      name: marker.name,
+      times: [],
+    };
+
+    currentRow.times.push(marker.time);
+    rows.set(rowKey, currentRow);
+  });
+
+  return Array.from(rows.values()).map((row) => ({
+    ...row,
+    times: [...new Set(row.times)].sort(),
+  }));
+}
+
+function groupDotMarkers(markers) {
+  const rows = new Map();
+
+  markers.forEach((marker) => {
+    const rowKey = String(marker.habitId ?? marker.name ?? marker.id);
+    if (!rows.has(rowKey)) {
+      rows.set(rowKey, {
+        color: marker.color,
+        id: rowKey,
+        name: marker.name,
+      });
+    }
+  });
+
+  return Array.from(rows.values());
 }

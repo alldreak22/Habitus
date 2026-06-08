@@ -137,7 +137,11 @@ export async function saveDayEntry({ dateKey, description = '', habits = [] }) {
       description,
       habits: habits.map((habit) => ({
         habitId: habit.id,
-        completed: Boolean(habit.completed),
+        completed: isHabitCompleted(habit),
+        timeSlots: (habit.timeSlots ?? []).map((timeSlot) => ({
+          time: timeSlot.time,
+          completed: Boolean(timeSlot.completed),
+        })),
       })),
     }),
   });
@@ -150,10 +154,50 @@ export async function saveDayEntry({ dateKey, description = '', habits = [] }) {
 export function mapDayToActivity(day) {
   return {
     completed: Boolean(day?.completed),
-    markers: (day?.markers ?? []).map((marker) => ({
-      color: marker.color,
-      id: marker.habitId,
-      name: marker.name,
-    })),
+    markers: Array.isArray(day?.habits) ? markersFromHabits(day.habits) : normalizeMarkers(day?.markers ?? []),
   };
+}
+
+export function isHabitCompleted(habit) {
+  if (habit?.timeSlots?.length) {
+    return habit.timeSlots.every((timeSlot) => Boolean(timeSlot.completed));
+  }
+  return Boolean(habit?.completed);
+}
+
+function normalizeMarkers(markers) {
+  return markers.map((marker, index) => ({
+    color: marker.color,
+    completed: Boolean(marker.completed),
+    habitId: marker.habitId,
+    id: marker.time ? `${marker.habitId}-${marker.time}` : String(marker.habitId ?? index),
+    name: marker.name,
+    time: marker.time ?? null,
+  }));
+}
+
+function markersFromHabits(habits) {
+  return habits.flatMap((habit, habitIndex) => {
+    const habitId = habit.id ?? habit.habitId ?? habitIndex;
+
+    if (habit.timeSlots?.length) {
+      return habit.timeSlots.map((timeSlot) => ({
+        color: habit.color,
+        completed: Boolean(timeSlot.completed),
+        habitId,
+        id: `${habitId}-${timeSlot.time}`,
+        name: habit.name,
+        time: timeSlot.time,
+      }));
+    }
+
+    return [{
+      color: habit.color,
+      completed: Boolean(habit.completed),
+      habitId,
+      id: String(habitId),
+      name: habit.name,
+      time: null,
+    }];
+  });
 }

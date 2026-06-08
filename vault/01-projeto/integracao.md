@@ -1,4 +1,4 @@
-# Integracao
+# Integração
 
 ## Fluxo
 
@@ -6,8 +6,7 @@
 frontend/habitus-web -> backend/habitus-api -> SQLite
 ```
 
-O frontend consome a API HTTP do backend.
-O backend aplica as regras de negocio e persiste os dados no SQLite.
+O frontend consome a API HTTP do backend. O backend aplica as regras de negócio e persiste os dados no SQLite.
 
 ## Base da API
 
@@ -23,7 +22,7 @@ Valor usado:
 VITE_API_BASE_URL
 ```
 
-Valor padrao:
+Valor padrão:
 
 ```txt
 http://localhost:8080/api
@@ -45,7 +44,7 @@ http://localhost:8080/api/habits
 
 ## Cliente HTTP
 
-Funcao central:
+Função central:
 
 ```txt
 apiRequest(path, options)
@@ -55,18 +54,21 @@ Responsabilidades:
 
 - montar a URL final usando `API_BASE_URL`
 - enviar `Content-Type: application/json`
+- anexar token bearer quando existir sessão autenticada
 - repassar headers adicionais recebidos em `options.headers`
-- lancar erro quando a resposta HTTP nao for OK
+- lançar erro quando a resposta HTTP não for OK
 - retornar `null` para respostas `204`
 - retornar JSON para as demais respostas OK
 
-## Autenticacao
+## Autenticação
 
 Endpoints:
 
-- `POST /auth/register`: cadastra usuario
-- `POST /auth/login`: autentica usuario com `login` (nick ou e-mail) e `password`
-- `GET /users/me`: busca o usuario autenticado
+- `POST /auth/register`: cadastra usuário
+- `POST /auth/login`: autentica usuário com `login` (nick ou e-mail) e `password`
+- `GET /users/me`: busca o usuário autenticado
+- `PUT /users/me`: atualiza perfil e foto
+- `PUT /users/me/password`: altera senha autenticada
 
 Fluxo esperado:
 
@@ -80,18 +82,20 @@ O backend espera o token no header:
 Authorization: Bearer <token>
 ```
 
-O token atual e simples, gerado pelo backend a partir do id do usuario e codificado em Base64 URL-safe.
+O token atual é simples, gerado pelo backend a partir do id do usuário e codificado em Base64 URL-safe.
 
-## Habitos
+Não há endpoint real para recuperação de senha. A rota `/recuperar-senha` existe no frontend apenas como tela.
 
-Endpoints usados para integracao de habitos:
+## Hábitos
 
-- `POST /habits`: cria habito
-- `GET /habits`: lista habitos
-- `GET /habits/{id}`: busca habito por id
-- `PUT /habits/{id}`: atualiza habito
-- `DELETE /habits/{id}`: desativa habito
-- `GET /habits/{id}/history`: lista historico do habito
+Endpoints usados para integração de hábitos:
+
+- `POST /habits`: cria hábito
+- `GET /habits`: lista hábitos
+- `GET /habits/{id}`: busca hábito por id
+- `PUT /habits/{id}`: atualiza hábito
+- `DELETE /habits/{id}`: exclui hábito
+- `GET /habits/{id}/history`: lista histórico do hábito
 
 Contrato principal de entrada:
 
@@ -109,13 +113,13 @@ Contrato principal de entrada:
 - `reminderTimes`
 - `frequencyDays`
 
-## Calendario
+## Calendário
 
-Endpoints usados para integracao do calendario:
+Endpoints usados para integração do calendário:
 
-- `POST /calendar/month`: carrega todos os dias de um mes em uma unica requisicao
-- `GET /calendar/days/{date}`: carrega um unico dia para resumos pontuais
-- `PUT /calendar/days/{date}`: salva a edicao manual de um dia em uma unica requisicao
+- `POST /calendar/month`: carrega todos os dias de um mês em uma única requisição
+- `GET /calendar/days/{date}`: carrega um único dia para resumos pontuais
+- `PUT /calendar/days/{date}`: salva a edição manual de um dia em uma única requisição
 
 Contrato principal de `POST /calendar/month`:
 
@@ -131,18 +135,28 @@ Cada item de `habits`:
 
 - `habitId`
 - `completed`
+- `timeSlots`, quando o hábito tiver horários
 
-O frontend nao deve montar o calendario fazendo chamadas por dia. A tela de calendario deve carregar o mes por `/calendar/month` e salvar alteracoes por `/calendar/days/{date}`.
-Resumos pontuais, como o resumo do dia atual na tela de habitos, devem usar cache do frontend e fallback para `/calendar/days/{date}`.
+Cada item de `timeSlots`:
 
-## Estado atual do frontend
+- `time` em formato `HH:mm`
+- `completed`
 
-Servicos atuais:
+O frontend não deve montar o calendário fazendo chamadas por dia. A tela de calendário deve carregar o mês por `/calendar/month` e salvar alterações por `/calendar/days/{date}`. Resumos pontuais devem usar cache no frontend e fallback para `/calendar/days/{date}`.
+
+## Estado Atual do Frontend
+
+Serviços atuais:
 
 - `src/services/api.js`: cliente HTTP central para a API
-- `src/services/calendarService.js`: usa endpoints agregados de calendario
-- `src/services/habitService.js`: usa endpoints reais de habitos
-- `src/services/profileService.js`: usa endpoints reais de perfil e cache local apenas para configuracoes/token
+- `src/services/authService.js`: autenticação, sessão e usuário atual
+- `src/services/calendarService.js`: endpoints agregados de calendário
+- `src/services/habitService.js`: endpoints reais de hábitos
+- `src/services/profileService.js`: endpoints reais de perfil e cache local apenas para configurações/token
+
+## Serviço Futuro de Métricas
+
+Relatórios, cálculos e métricas devem ser tratados futuramente pelo serviço/API C# em `services/habitus-stats`. Esse serviço ainda não existe no fluxo principal e não deve ser assumido como disponível pelo frontend.
 
 ## CORS
 
@@ -151,7 +165,7 @@ O backend permite chamadas locais a partir de:
 - `http://localhost:5173`
 - `http://localhost:3000`
 
-Metodos permitidos:
+Métodos permitidos:
 
 - `GET`
 - `POST`
@@ -159,7 +173,7 @@ Metodos permitidos:
 - `DELETE`
 - `OPTIONS`
 
-## Referencias
+## Referências
 
 Endpoints documentados:
 

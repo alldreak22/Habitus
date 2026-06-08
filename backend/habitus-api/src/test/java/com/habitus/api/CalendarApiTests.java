@@ -92,6 +92,68 @@ class CalendarApiTests extends BaseApiIntegrationTest {
     }
 
     @Test
+    void calendarioPermiteConcluirHorariosIndividuaisDoHabito() throws Exception {
+        UsuarioTeste usuario = registrarUsuarioUnico();
+        long habitoId = criarHabitoComHorarios(usuario.token(), "Beber agua", "#7C3AED", "[\"08:00\",\"20:00\"]");
+
+        mockMvc.perform(get("/api/calendar/days/{date}", "2026-06-01")
+                .header("Authorization", usuario.cabecalhoAutorizacao()))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.habits[0].id").value(habitoId))
+            .andExpect(jsonPath("$.habits[0].timeSlots", hasSize(2)))
+            .andExpect(jsonPath("$.habits[0].timeSlots[0].time").value("08:00"))
+            .andExpect(jsonPath("$.habits[0].timeSlots[0].completed").value(false));
+
+        mockMvc.perform(put("/api/calendar/days/{date}", "2026-06-01")
+                .header("Authorization", usuario.cabecalhoAutorizacao())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("""
+                    {
+                      "description": "",
+                      "habits": [
+                        {
+                          "habitId": %d,
+                          "completed": false,
+                          "timeSlots": [
+                            { "time": "08:00", "completed": true },
+                            { "time": "20:00", "completed": false }
+                          ]
+                        }
+                      ]
+                    }
+                    """.formatted(habitoId)))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.completed").value(false))
+            .andExpect(jsonPath("$.habits[0].completed").value(false))
+            .andExpect(jsonPath("$.habits[0].timeSlots[0].completed").value(true))
+            .andExpect(jsonPath("$.habits[0].timeSlots[1].completed").value(false))
+            .andExpect(jsonPath("$.markers[*].time", hasItem("08:00")))
+            .andExpect(jsonPath("$.markers[*].time", hasItem("20:00")));
+
+        mockMvc.perform(put("/api/calendar/days/{date}", "2026-06-01")
+                .header("Authorization", usuario.cabecalhoAutorizacao())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("""
+                    {
+                      "description": "",
+                      "habits": [
+                        {
+                          "habitId": %d,
+                          "completed": true,
+                          "timeSlots": [
+                            { "time": "08:00", "completed": true },
+                            { "time": "20:00", "completed": true }
+                          ]
+                        }
+                      ]
+                    }
+                    """.formatted(habitoId)))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.completed").value(true))
+            .andExpect(jsonPath("$.habits[0].completed").value(true));
+    }
+
+    @Test
     void calendarioDiaUnicoRetornaEdicaoManualSalva() throws Exception {
         UsuarioTeste usuario = registrarUsuarioUnico();
         long habitoId = criarHabitoComFrequencia(usuario.token(), "Ler", "#7C3AED", "EVERY_DAY", "[]");
@@ -116,6 +178,46 @@ class CalendarApiTests extends BaseApiIntegrationTest {
             .andExpect(jsonPath("$.description").value("Dia manual"))
             .andExpect(jsonPath("$.habits", hasSize(1)))
             .andExpect(jsonPath("$.habits[0].completed").value(true));
+    }
+
+    @Test
+    void diaManualMantemOrdemDosHabitosAposSalvar() throws Exception {
+        UsuarioTeste usuario = registrarUsuarioUnico();
+        long primeiroCriadoId = criarHabitoComFrequencia(usuario.token(), "Primeiro", "#7C3AED", "EVERY_DAY", "[]");
+        long segundoCriadoId = criarHabitoComHorarios(usuario.token(), "Segundo", "#2563EB", "[\"08:00\",\"20:00\"]");
+        long terceiroCriadoId = criarHabitoComFrequencia(usuario.token(), "Terceiro", "#16A34A", "EVERY_DAY", "[]");
+
+        mockMvc.perform(get("/api/calendar/days/{date}", "2026-06-02")
+                .header("Authorization", usuario.cabecalhoAutorizacao()))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.habits[0].id").value(primeiroCriadoId))
+            .andExpect(jsonPath("$.habits[1].id").value(segundoCriadoId))
+            .andExpect(jsonPath("$.habits[2].id").value(terceiroCriadoId));
+
+        mockMvc.perform(put("/api/calendar/days/{date}", "2026-06-02")
+                .header("Authorization", usuario.cabecalhoAutorizacao())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("""
+                    {
+                      "description": "",
+                      "habits": [
+                        { "habitId": %d, "completed": false },
+                        {
+                          "habitId": %d,
+                          "completed": false,
+                          "timeSlots": [
+                            { "time": "08:00", "completed": true },
+                            { "time": "20:00", "completed": false }
+                          ]
+                        },
+                        { "habitId": %d, "completed": false }
+                      ]
+                    }
+                    """.formatted(primeiroCriadoId, segundoCriadoId, terceiroCriadoId)))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.habits[0].id").value(primeiroCriadoId))
+            .andExpect(jsonPath("$.habits[1].id").value(segundoCriadoId))
+            .andExpect(jsonPath("$.habits[2].id").value(terceiroCriadoId));
     }
 
     @Test
@@ -215,6 +317,33 @@ class CalendarApiTests extends BaseApiIntegrationTest {
                       "frequencyDays": %s
                     }
                     """.formatted(nome, nome, cor, frequencyType, frequencyType, frequencyDays)))
+            .andExpect(status().isCreated())
+            .andReturn();
+
+        return objectMapper.readTree(resultado.getResponse().getContentAsString()).at("/id").asLong();
+    }
+
+    private long criarHabitoComHorarios(String token, String nome, String cor, String reminderTimes) throws Exception {
+        var resultado = mockMvc.perform(post("/api/habits")
+                .header("Authorization", "Bearer " + token)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("""
+                    {
+                      "name": "%s",
+                      "title": "%s",
+                      "icon": "water_drop",
+                      "color": "%s",
+                      "description": "Descricao",
+                      "targetFrequency": "EVERY_DAY",
+                      "timesPerDay": 2,
+                      "suggestedTimes": "08:00,20:00",
+                      "reminder": true,
+                      "frequencyType": "EVERY_DAY",
+                      "status": "ACTIVE",
+                      "reminderTimes": %s,
+                      "frequencyDays": []
+                    }
+                    """.formatted(nome, nome, cor, reminderTimes)))
             .andExpect(status().isCreated())
             .andReturn();
 
