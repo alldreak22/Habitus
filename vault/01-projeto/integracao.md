@@ -149,14 +149,37 @@ O frontend não deve montar o calendário fazendo chamadas por dia. A tela de ca
 Serviços atuais:
 
 - `src/services/api.js`: cliente HTTP central para a API
+- `src/services/statsService.js`: cliente HTTP para o serviço/API C# de métricas
 - `src/services/authService.js`: autenticação, sessão e usuário atual
 - `src/services/calendarService.js`: endpoints agregados de calendário
 - `src/services/habitService.js`: endpoints reais de hábitos
 - `src/services/profileService.js`: endpoints reais de perfil e cache local apenas para configurações/token
 
-## Serviço Futuro de Métricas
+## Serviço de Métricas
 
-Relatórios, cálculos e métricas devem ser tratados futuramente pelo serviço/API C# em `services/habitus-stats`. Esse serviço ainda não existe no fluxo principal e não deve ser assumido como disponível pelo frontend.
+Relatórios, cálculos e métricas são tratados pelo serviço/API C# em:
+
+```txt
+services/habitus-stats
+```
+
+No frontend, a URL base do serviço de métricas fica em:
+
+```txt
+VITE_STATS_API_BASE_URL
+```
+
+Valor padrão:
+
+```txt
+http://localhost:5090/api
+```
+
+Endpoint usado pela tela de evolução:
+
+- `GET /stats/evolution?days=30`
+
+O serviço C# reutiliza `Authorization: Bearer <token>` e lê o SQLite local em modo somente leitura. O frontend não deve calcular métricas de negócio; deve apenas consumir o contrato retornado pelo serviço.
 
 ## CORS
 
@@ -172,6 +195,11 @@ Métodos permitidos:
 - `PUT`
 - `DELETE`
 - `OPTIONS`
+
+O serviço C# de métricas também permite chamadas locais a partir de:
+
+- `http://localhost:5173`
+- `http://localhost:3000`
 
 ## Referências
 

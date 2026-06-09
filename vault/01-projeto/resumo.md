@@ -28,15 +28,15 @@ Backend:
 - Maven
 - SQLite
 
-Serviço futuro:
+Serviço de métricas:
 
-- C# em `services/habitus-stats`
+- C# / ASP.NET Core em `services/habitus-stats`
 
 ## Estrutura Principal
 
 - `frontend/habitus-web`: aplicação web
 - `backend/habitus-api`: API principal
-- `services/habitus-stats`: espaço reservado para serviço futuro de estatísticas, relatórios e cálculos
+- `services/habitus-stats`: serviço/API C# de estatísticas, relatórios e cálculos
 - `scripts`: scripts auxiliares
 - `vault`: documentação e controle do projeto
 
@@ -47,8 +47,8 @@ Serviço futuro:
 - o fluxo de login/cadastro usa API real e token bearer simples
 - calendário, hábitos e perfil usam dados reais da API
 - a tela `/recuperar-senha` existe, mas ainda não possui fluxo real com backend
-- a tela de evolução ainda deve receber métricas futuras
-- o serviço C# de estatísticas ainda não foi implementado
+- a tela de evolução consome métricas reais do serviço C#
+- o serviço C# de estatísticas está implementado para o resumo essencial dos últimos 30 dias
 - scripts são auxiliares e não fazem parte do fluxo principal
 
 ## Documentos Principais

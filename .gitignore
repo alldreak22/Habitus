@@ -17,6 +17,12 @@ data/
 target/
 backend/**/target/
 
+# .NET build output
+bin/
+obj/
+services/**/bin/
+services/**/obj/
+
 # Node / React build output
 node_modules/
 frontend/**/node_modules/

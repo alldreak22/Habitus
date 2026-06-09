@@ -3161,6 +3161,176 @@ h5 {
   color: var(--text-secondary);
 }
 
+.evolution-page {
+  width: 100%;
+}
+
+.evolution-header {
+  align-items: flex-start;
+}
+
+.evolution-status {
+  min-height: 120px;
+  display: grid;
+  place-items: center;
+}
+
+.evolution-error {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  min-height: 120px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  padding: 20px;
+}
+
+.evolution-error .material-symbols-outlined {
+  color: var(--warning);
+  font-size: 34px;
+}
+
+.evolution-error h2 {
+  margin-bottom: 4px;
+  color: var(--text-primary);
+  font-size: 1rem;
+}
+
+.evolution-error p {
+  margin-bottom: 0;
+  color: var(--text-secondary);
+}
+
+.evolution-metrics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+  margin-bottom: 18px;
+}
+
+.evolution-metric-card {
+  display: flex;
+  min-height: 132px;
+  align-items: flex-start;
+  gap: 14px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  padding: 18px;
+}
+
+.evolution-metric-card > .material-symbols-outlined {
+  display: inline-grid;
+  width: 42px;
+  height: 42px;
+  flex: 0 0 42px;
+  place-items: center;
+  border-radius: 8px;
+  background: var(--primary-soft);
+  color: var(--primary);
+  font-size: 24px;
+}
+
+.evolution-metric-card p,
+.evolution-metric-card small {
+  margin-bottom: 0;
+  color: var(--text-secondary);
+}
+
+.evolution-metric-card p {
+  font-size: 0.82rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.evolution-metric-card strong {
+  display: block;
+  margin: 8px 0 4px;
+  color: var(--text-primary);
+  font-size: 1.8rem;
+  line-height: 1;
+}
+
+.evolution-metric-card small {
+  font-size: 0.84rem;
+  line-height: 1.4;
+}
+
+.evolution-panel {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  padding: 20px;
+}
+
+.evolution-panel header {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.evolution-panel h2 {
+  margin-bottom: 4px;
+  color: var(--text-primary);
+  font-size: 1.1rem;
+}
+
+.evolution-panel p {
+  margin-bottom: 0;
+  color: var(--text-secondary);
+}
+
+.evolution-chart {
+  display: grid;
+  grid-template-columns: repeat(30, minmax(12px, 1fr));
+  align-items: end;
+  gap: 6px;
+  min-height: 260px;
+  overflow-x: auto;
+  padding-top: 8px;
+}
+
+.evolution-day {
+  display: grid;
+  min-width: 18px;
+  gap: 8px;
+  align-items: end;
+}
+
+.evolution-day-bar {
+  position: relative;
+  height: 210px;
+  border-radius: 6px;
+  background:
+    linear-gradient(
+      to top,
+      var(--surface-container-highest) 0 var(--planned-height),
+      var(--surface-container-low) var(--planned-height) 100%
+    );
+  overflow: hidden;
+}
+
+.evolution-day-bar span {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: var(--completed-height);
+  border-radius: 6px 6px 0 0;
+  background: var(--primary);
+}
+
+.evolution-day small {
+  min-height: 28px;
+  color: var(--text-secondary);
+  font-size: 0.68rem;
+  text-align: center;
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+}
+
 .eyebrow {
   margin: 0 0 8px;
   color: var(--primary);
@@ -3660,6 +3830,10 @@ h5 {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
+  .evolution-metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .habit-form-grid,
   .habit-form-grid.compact {
     grid-template-columns: 1fr;
@@ -3752,9 +3926,22 @@ h5 {
   }
 
   .habit-metrics,
+  .evolution-metrics,
   .habits-grid,
   .profile-data-grid {
     grid-template-columns: 1fr;
+  }
+
+  .evolution-panel {
+    padding: 16px;
+  }
+
+  .evolution-chart {
+    grid-template-columns: repeat(30, 18px);
+  }
+
+  .evolution-day-bar {
+    height: 170px;
   }
 
   .habit-card {

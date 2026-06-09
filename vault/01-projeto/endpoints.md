@@ -31,4 +31,13 @@ Não há endpoint de recuperação de senha implementado.
 
 ## Métricas e Relatórios
 
-Não há endpoints de métricas ou relatórios implementados na API principal. Esse escopo fica para o futuro serviço/API C# em `services/habitus-stats`.
+Os endpoints de métricas ficam no serviço/API C# em `services/habitus-stats`, com base padrão:
+
+```txt
+http://localhost:5090/api
+```
+
+- `GET /api/stats/health`: retorna o estado simples do serviço de métricas.
+- `GET /api/stats/evolution?days=30`: retorna resumo de evolução do usuário autenticado, incluindo período, hábitos ativos, unidades planejadas/concluídas, taxa de conclusão, sequência atual, melhor sequência e série diária.
+
+O serviço C# reutiliza o token bearer atual e lê o SQLite local em modo somente leitura. Não há endpoints de métricas ou relatórios implementados na API principal Java.

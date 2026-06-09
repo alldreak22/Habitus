@@ -2,6 +2,7 @@
 
 ## Concluidos
 
+- Criar o serviço/API C# em `services/habitus-stats` para relatórios, cálculos e métricas consumidas pelo frontend. (CONCLUIDO)
 - Revisar AGENTS, READMEs, vault e controle de tarefas para refletir o estado atual do projeto e registrar pendências futuras de recuperação de senha e métricas C#. (CONCLUIDO)
 - Manter todas as bolinhas de hábitos no calendário, remover fundo dos horários e estabilizar ordem do resumo ao concluir subhorários. (CONCLUIDO)
 - Compactar indicadores de horário no calendário para não sobrepor o número do dia. (CONCLUIDO)

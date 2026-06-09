@@ -51,7 +51,7 @@ Estado atual:
 - login, cadastro, hábitos, calendário e perfil estão integrados com a API
 - configurações simples seguem locais no frontend
 - `/recuperar-senha` existe como tela, mas ainda não tem fluxo real com backend
-- a tela de evolução deve receber métricas futuras do serviço/API C#
+- a tela de evolução consome métricas reais do serviço/API C#
 
 ## Backend
 
@@ -218,7 +218,7 @@ Frontend:
 
 ## Serviço de Estatísticas
 
-Local planejado:
+Local:
 
 ```txt
 services/habitus-stats
@@ -226,10 +226,12 @@ services/habitus-stats
 
 Estado atual:
 
-- diretório reservado
-- implementação futura em C#
-- deve concentrar relatórios, cálculos e métricas para consumo do frontend
-- não faz parte do fluxo principal atual
+- serviço/API C# implementado com ASP.NET Core
+- porta local padrão `5090`
+- concentra métricas da tela de evolução
+- lê o SQLite local em modo somente leitura
+- reutiliza o token bearer simples atual para resolver o usuário
+- não substitui a API principal Java para autenticação, hábitos, calendário ou perfil
 
 ## Scripts
 
